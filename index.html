@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Senior Tech Chatbot (Prototype)</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  </head>
+  <body>
+    <!-- User ID Section -->
+    <!-- User ID Section -->
+    <label for="userId">User ID:</label>
+    <input type="text" id="userId" placeholder="Enter your User ID" />
+    <br /><br />
+
+    <!-- Question Section -->
+    <label for="userMessage">Your question:</label>
+    <br />
+    <textarea
+      id="userMessage"
+      placeholder="Type a tech question..."
+      style="width: 500px; height: 100px"
+    ></textarea>
+    <br /><br />
+
+    <button onclick="sendMessage()">Send</button>
+
+    <div id="chatLog"></div>
+
+    <script>
+      async function sendMessage(userInput = null) {
+        const userId = document.getElementById("userId").value.trim();
+        const message =
+          userInput || document.getElementById("userMessage").value.trim();
+
+        if (!userId) {
+          alert("Please enter a User ID.");
+          return;
+        }
+        if (!message) {
+          alert("Please type a question.");
+          return;
+        }
+
+        // Display user's message in the chat log
+        addToChatLog("You", message);
+
+        try {
+          // Send POST request to your Node.js backend
+          const response = await fetch("http://localhost:3001/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId, message }),
+          });
+
+          const data = await response.json();
+
+          if (data.error) {
+            addToChatLog("Error", data.error);
+          } else {
+            addToChatLog("Assistant", data.assistant);
+          }
+        } catch (error) {
+          addToChatLog(
+            "Error",
+            "Could not connect to the server. Please try again."
+          );
+          console.error("Error sending message:", error);
+        }
+
+        // Clear the input box (if a user manually typed their question)
+        if (!userInput) {
+          document.getElementById("userMessage").value = "";
+        }
+      }
+
+      function addToChatLog(role, text) {
+        const chatLog = document.getElementById("chatLog");
+        const newMsg = document.createElement("div");
+
+        if (role === "Assistant") {
+          // Parse Markdown to HTML
+          const html = marked.parse(text);
+
+          // Set the assistant's response
+          newMsg.innerHTML = `<strong>Assistant:</strong><br>${html}`;
+
+          // Attach a click handler to follow-up links dynamically
+          newMsg.querySelectorAll("a").forEach((link) => {
+            link.addEventListener("click", function (e) {
+              e.preventDefault(); // Prevent default link behavior
+
+              // Get the follow-up question from the data-question attribute
+              const followUpQuestion = e.target.getAttribute("data-question");
+              console.log("Follow-up question:", followUpQuestion);
+
+              if (followUpQuestion) {
+                sendMessage(followUpQuestion); // Send the follow-up question as a new query
+              } else {
+                console.error("data-question attribute missing or null.");
+              }
+            });
+          });
+        } else {
+          // User or other roles
+          newMsg.innerHTML = `<strong>${role}:</strong> ${text}`;
+        }
+
+        chatLog.appendChild(newMsg);
+        chatLog.scrollTop = chatLog.scrollHeight;
+      }
+    </script>
+  </body>
+</html>
