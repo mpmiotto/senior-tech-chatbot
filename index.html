@@ -30,7 +30,19 @@
     <!-- User ID Section -->
     <!-- User ID Section -->
     <label for="userId">User ID:</label>
-    <input type="text" id="userId" placeholder="Enter your User ID" />
+    <br />
+    <input
+      type="text"
+      id="userId"
+      placeholder="Enter your User ID"
+      style="
+        width: 100%;
+        max-width: 300px;
+        font-size: 16px;
+        padding: 10px;
+        box-sizing: border-box;
+      "
+    />
     <br /><br />
 
     <!-- Question Section -->
@@ -43,7 +55,20 @@
     ></textarea>
     <br /><br />
 
-    <button onclick="sendMessage()">Send</button>
+    <button
+      onclick="sendMessage()"
+      style="
+        font-size: 16px;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      "
+    >
+      Send
+    </button>
 
     <div id="chatLog"></div>
 
