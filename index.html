@@ -123,38 +123,39 @@
       }
 
       function addToChatLog(role, text) {
-        // Get the chat log container where all messages are displayed
         const chatLog = document.getElementById("chatLog");
-
-        // Create a new <div> element to hold the new message
         const newMsg = document.createElement("div");
 
-        // If the role is "Assistant", format the response with Markdown for rich text
         if (role === "Assistant") {
-          // Parse the assistant's response using the marked library to convert Markdown to HTML
+          // Parse Markdown to HTML
           const html = marked.parse(text);
 
-          // Add the assistant's message to the new <div>, including a label
+          // Set the assistant's response
           newMsg.innerHTML = `<strong>Assistant:</strong><br>${html}`;
+
+          // Attach a click handler to follow-up links dynamically
+          newMsg.querySelectorAll("a").forEach((link) => {
+            link.addEventListener("click", function (e) {
+              e.preventDefault(); // Prevent default link behavior
+
+              // Get the follow-up question from the data-question attribute
+              const followUpQuestion = e.target.getAttribute("data-question");
+              console.log("Follow-up question:", followUpQuestion);
+
+              if (followUpQuestion) {
+                sendMessage(followUpQuestion); // Send the follow-up question as a new query
+              } else {
+                console.error("data-question attribute missing or null.");
+              }
+            });
+          });
         } else {
-          // For other roles (like "You"), just display the text directly
+          // User or other roles
           newMsg.innerHTML = `<strong>${role}:</strong> ${text}`;
         }
 
-        // Add the new message <div> to the chat log
         chatLog.appendChild(newMsg);
-
-        // Check if the user is currently at the bottom of the chat log
-        // This ensures we only auto-scroll if the user is already at the bottom
-        const isAtBottom =
-          chatLog.scrollHeight - chatLog.clientHeight <= chatLog.scrollTop + 10;
-
-        // If the user is at the bottom, automatically scroll down to show the new message
-        if (isAtBottom) {
-          chatLog.scrollTop = chatLog.scrollHeight;
-        }
-
-        // If the user has scrolled up, we don't auto-scroll to avoid interrupting them
+        chatLog.scrollTop = chatLog.scrollHeight;
       }
     </script>
   </body>
