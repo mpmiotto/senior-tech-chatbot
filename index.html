@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
     <title>Senior Tech Chatbot (Prototype)</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
@@ -44,7 +47,7 @@
       #header input {
         width: 100%;
         padding: 12px 40px 12px 12px; /* Space for button */
-        font-size: 16px;
+        font-size: 18px; /* Ensures iOS does not zoom in */
         border: none;
         border-radius: 5px;
         outline: none;
@@ -108,7 +111,7 @@
         }
 
         #header input {
-          font-size: 14px;
+          font-size: 18px; /* Ensures iOS does not zoom in */
           padding: 10px 40px 10px 10px;
         }
 
