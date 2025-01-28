@@ -109,6 +109,9 @@
         // Add the user's message to the chat area
         const userMessageDiv = addToChatArea("You", message);
 
+        // Scroll the "You:" message to the top of the chat area immediately
+        scrollToTop(userMessageDiv);
+
         // Show "thinking..." indicator
         const thinkingIndicator = addToChatArea("Assistant", "Thinking...");
 
@@ -148,9 +151,6 @@
         if (!userInput) {
           userMessageInput.value = "";
         }
-
-        // Scroll the "You:" message to the top of the chat area
-        scrollToTop(userMessageDiv);
       }
 
       // Function to add messages to the chat area
@@ -177,6 +177,9 @@
               console.log("Follow-up question:", followUpQuestion);
 
               if (followUpQuestion) {
+                // Scroll immediately to clear the chat area
+                const userMessageDiv = addToChatArea("You", followUpQuestion);
+                scrollToTop(userMessageDiv);
                 sendMessage(followUpQuestion); // Treat as a new query
               } else {
                 console.error("data-question attribute missing or null.");
