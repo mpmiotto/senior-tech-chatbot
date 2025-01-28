@@ -18,7 +18,7 @@
 
       /* Header with title and input field */
       #header {
-        background-color: black; /* Background color */
+        background-color: black;
         color: white;
         padding: 10px;
         display: flex;
@@ -32,43 +32,36 @@
         text-align: center;
       }
 
-      #header .input-container {
-        margin-top: 10px;
+      /* Input container with icon inside */
+      .input-container {
         display: flex;
         align-items: center;
-        width: 100%;
+        width: 90%;
         max-width: 500px;
-        background-color: white;
-        border-radius: 5px;
-        overflow: hidden;
+        position: relative;
       }
 
       #header input {
-        flex: 1;
-        padding: 10px;
+        width: 100%;
+        padding: 12px 40px 12px 12px; /* Space for button */
         font-size: 16px;
         border: none;
+        border-radius: 5px;
         outline: none;
       }
 
       #header button {
+        position: absolute;
+        right: 10px;
         background-color: transparent;
         border: none;
-        color: black;
-        padding: 10px;
         cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      #header button:hover {
-        background-color: #e0e0e0;
       }
 
       #header button svg {
-        width: 20px;
-        height: 20px;
+        width: 24px;
+        height: 24px;
+        color: black;
       }
 
       /* Chat area */
@@ -86,7 +79,7 @@
       .user {
         text-align: left;
         font-weight: bold;
-        font-size: 18px; /* Larger font size for "You:" messages */
+        font-size: 18px;
       }
 
       .assistant {
@@ -94,39 +87,33 @@
       }
 
       .assistant a {
-        display: block; /* Ensures hyperlinks appear on separate lines */
-        margin-top: 5px; /* Adds spacing between each hyperlink */
+        display: block;
+        margin-top: 5px;
       }
 
       .separator {
         border: none;
         border-top: 5px solid #ccc;
-        margin: 15px 0; /* Adds spacing above and below the line */
+        margin: 15px 0;
       }
 
       /* Responsive design for smaller screens */
       @media (max-width: 600px) {
-        #header {
-          padding: 10px;
-        }
-
         #header h1 {
           font-size: 1.2rem;
         }
 
-        #header .input-container {
-          flex-direction: column; /* Stack input and button vertically */
+        .input-container {
           width: 100%;
         }
 
         #header input {
-          width: 100%;
-          font-size: 14px; /* Slightly smaller font for mobile */
+          font-size: 14px;
+          padding: 10px 40px 10px 10px;
         }
 
         #header button {
-          width: 100%; /* Make button full width */
-          margin-top: 5px;
+          right: 5px;
         }
       }
     </style>
