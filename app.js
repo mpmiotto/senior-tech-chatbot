@@ -2,14 +2,13 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { OpenAI } = require("openai");
-const path = require("path");
 
 // Initialize Express and OpenAI
 const app = express();
 app.use(cors());
 app.use(express.json());
+const path = require("path");
 
-// Serve the frontend file
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
@@ -18,7 +17,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Define the system prompt as a constant
+// Define the system prompt
 const SYSTEM_PROMPT = `
 You are a friendly, patient AI assistant specifically designed to help non-technical senior citizens with their day-to-day technology-related questions.
 
@@ -37,25 +36,36 @@ Your responses must:
 8. Ensure that the follow-up link questions are on two separate lines.
 `;
 
-// In-memory data for context
-const messages = [];
+// In-memory message history
+const messages = {};
+const MAX_MESSAGES = 10; // Limit history to last 10 messages per user
 
-// POST endpoint (for chatbot queries)
+// POST endpoint (for chatbot UI)
 app.post("/api/chat", async (req, res) => {
   try {
     const { message } = req.body;
 
     if (!message) {
-      return res.status(400).json({ error: "Message is required" });
+      return res.status(400).json({ error: "Missing message" });
     }
 
-    // Add user message to in-memory store
-    messages.push({ role: "user", content: message });
+    const userId = "defaultUser"; // Remove user-specific storage for now
 
-    // Build the conversation
+    // Ensure user message history exists
+    if (!messages[userId]) {
+      messages[userId] = [];
+    }
+
+    // Add user message and enforce history limit
+    messages[userId].push({ role: "user", content: message });
+    if (messages[userId].length > MAX_MESSAGES) {
+      messages[userId] = messages[userId].slice(-MAX_MESSAGES);
+    }
+
+    // Build conversation history with system prompt
     const conversation = [
       { role: "system", content: SYSTEM_PROMPT },
-      ...messages.map((m) => ({ role: m.role, content: m.content })),
+      ...messages[userId],
     ];
 
     // GPT-4 response
@@ -66,8 +76,11 @@ app.post("/api/chat", async (req, res) => {
 
     const assistantText = response.choices[0].message.content;
 
-    // Add assistant response to memory
-    messages.push({ role: "assistant", content: assistantText });
+    // Add assistant response to history
+    messages[userId].push({ role: "assistant", content: assistantText });
+    if (messages[userId].length > MAX_MESSAGES) {
+      messages[userId] = messages[userId].slice(-MAX_MESSAGES);
+    }
 
     res.json({ assistant: assistantText });
   } catch (error) {
@@ -80,14 +93,13 @@ app.post("/api/chat", async (req, res) => {
 app.get("/api/chat", async (req, res) => {
   try {
     const question = req.query.question;
-
     if (!question) {
       return res
         .status(400)
         .json({ error: "Missing query parameter: question" });
     }
 
-    // Build the conversation
+    // Build conversation with system prompt and single user query
     const conversation = [
       { role: "system", content: SYSTEM_PROMPT },
       { role: "user", content: question },
@@ -100,8 +112,7 @@ app.get("/api/chat", async (req, res) => {
     });
 
     const assistantText = response.choices[0].message.content;
-
-    res.send(assistantText); // Send response directly as plain text
+    res.send(assistantText);
   } catch (error) {
     console.error("Error in GET /api/chat:", error);
     res.status(500).json({ error: "Server error" });

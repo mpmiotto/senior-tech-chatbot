@@ -18,42 +18,57 @@
 
       /* Header with title and input field */
       #header {
-        background-color: #007bff;
+        background-color: black; /* Changed background to black */
         color: white;
-        padding: 10px;
+        padding: 10px; /* Adjusted padding */
         display: flex;
-        flex-direction: column;
+        flex-direction: column; /* Stack elements for easier alignment */
         align-items: center;
       }
 
       #header h1 {
         margin: 0;
         font-size: 1.5rem;
+        text-align: center;
+      }
+
+      #header .input-container {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        width: 100%;
+        max-width: 500px;
+        background-color: white;
+        border-radius: 5px;
+        overflow: hidden;
       }
 
       #header input {
-        margin-top: 10px;
-        width: 90%;
-        max-width: 500px;
+        flex: 1;
         padding: 10px;
         font-size: 16px;
         border: none;
-        border-radius: 5px;
+        outline: none;
       }
 
       #header button {
-        margin-top: 5px;
-        padding: 10px 20px;
-        background-color: white;
-        color: #007bff;
+        background-color: transparent;
         border: none;
-        border-radius: 5px;
+        color: black;
+        padding: 10px;
         cursor: pointer;
-        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       #header button:hover {
         background-color: #e0e0e0;
+      }
+
+      #header button svg {
+        width: 20px;
+        height: 20px;
       }
 
       /* Chat area */
@@ -71,16 +86,48 @@
       .user {
         text-align: left;
         font-weight: bold;
+        font-size: 18px; /* Increased font size for "You:" messages */
       }
 
       .assistant {
         text-align: left;
       }
 
+      .assistant a {
+        display: block; /* Ensures hyperlinks appear on separate lines */
+        margin-top: 5px; /* Adds spacing between each hyperlink */
+      }
+
       .separator {
         border: none;
-        border-top: 1px solid #ccc;
-        margin: 10px 0;
+        border-top: 5px solid #ccc;
+        margin: 15px 0; /* Adds spacing above and below the line */
+      }
+
+      /* Responsive design for smaller screens */
+      @media (max-width: 600px) {
+        #header {
+          padding: 10px;
+        }
+
+        #header h1 {
+          font-size: 1.2rem;
+        }
+
+        #header .input-container {
+          flex-direction: column; /* Stack input and button vertically */
+          width: 100%;
+        }
+
+        #header input {
+          width: 100%;
+          font-size: 14px; /* Slightly smaller font for mobile */
+        }
+
+        #header button {
+          width: 100%; /* Make button full width */
+          margin-top: 5px;
+        }
       }
     </style>
   </head>
@@ -88,12 +135,28 @@
     <!-- Header Section -->
     <div id="header">
       <h1>Senior Tech Chatbot</h1>
-      <input
-        type="text"
-        id="userMessage"
-        placeholder="Type your question here..."
-      />
-      <button onclick="sendMessage()">Send</button>
+      <div class="input-container">
+        <input
+          type="text"
+          id="userMessage"
+          placeholder="Type your question here..."
+        />
+        <button onclick="sendMessage()">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 10l7-7m0 0l7 7m-7-7v18"
+            />
+          </svg>
+        </button>
+      </div>
     </div>
 
     <!-- Chat Area -->
@@ -112,15 +175,14 @@
           return;
         }
 
-        // Scroll to the top and add the "You:" message
-        scrollToTop();
-        const userMessageDiv = addToChatArea("You", message, true);
+        // Add the "You:" message to the chat area
+        addToChatArea("You", message);
 
-        // Add a "Thinking..." message
+        // Add a "Thinking..." message below the "You:" message
         const thinkingIndicator = addToChatArea("Assistant", "Thinking...");
 
-        // Add a separator line
-        addSeparatorLine();
+        // Scroll to the bottom after adding the "You" message
+        scrollToBottom();
 
         try {
           const response = await fetch(
@@ -140,9 +202,15 @@
           if (data.error) {
             addToChatArea("Error", data.error);
           } else {
-            // Add the assistant's response
+            // Add the assistant's response below the "You:" message
             addToChatArea("Assistant", data.assistant);
           }
+
+          // Add a separator line after each response
+          addSeparatorLine();
+
+          // Ensure chat area scrolls to the latest response
+          scrollToBottom();
         } catch (error) {
           thinkingIndicator.remove();
           addToChatArea(
@@ -158,51 +226,56 @@
       }
 
       // Function to add messages to the chat area
-      function addToChatArea(role, text, insertAtTop = false) {
+      function addToChatArea(role, text) {
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message");
 
         if (role === "You") {
           messageDiv.classList.add("user");
           messageDiv.innerHTML = `<strong>${role}:</strong> ${text}`;
-
-          // Insert the "You" message at the top
-          if (insertAtTop) {
-            chatArea.prepend(messageDiv);
-          } else {
-            chatArea.appendChild(messageDiv);
-          }
-        } else if (role === "Assistant") {
+        } else if (role === "Assistant" || role === "Error") {
           messageDiv.classList.add("assistant");
           messageDiv.innerHTML = `<strong>${role}:</strong> ${marked.parse(
             text
           )}`;
+        }
 
-          // Add below "You:" message and above the line
-          const separatorLine = chatArea.querySelector(".separator");
-          if (separatorLine) {
-            chatArea.insertBefore(messageDiv, separatorLine);
-          } else {
-            chatArea.appendChild(messageDiv);
-          }
+        // Append messages to the bottom of the chat area
+        chatArea.appendChild(messageDiv);
+
+        // Attach dynamic event listener for follow-up links
+        if (role === "Assistant") {
+          messageDiv.querySelectorAll("a").forEach((link) => {
+            link.addEventListener("click", function (e) {
+              e.preventDefault(); // Prevent default link behavior
+
+              // Extract follow-up question from data-question attribute
+              const followUpQuestion = e.target.getAttribute("data-question");
+              if (followUpQuestion) {
+                sendMessage(followUpQuestion); // Treat as a new query
+              } else {
+                console.error("data-question attribute missing or null.");
+              }
+            });
+          });
         }
 
         return messageDiv;
-      }
-
-      // Function to scroll to the top of the chat area
-      function scrollToTop() {
-        chatArea.scrollTo({
-          top: 0,
-          behavior: "smooth",
-        });
       }
 
       // Function to add a separator line
       function addSeparatorLine() {
         const line = document.createElement("hr");
         line.classList.add("separator");
-        chatArea.prepend(line);
+        chatArea.appendChild(line);
+      }
+
+      // Function to scroll to the bottom of the chat area
+      function scrollToBottom() {
+        chatArea.scrollTo({
+          top: chatArea.scrollHeight,
+          behavior: "smooth",
+        });
       }
     </script>
   </body>
