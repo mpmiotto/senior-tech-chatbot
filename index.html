@@ -126,43 +126,47 @@
         const newMsg = document.createElement("div");
 
         if (role === "Assistant") {
+          // Parse Markdown to HTML
           const html = marked.parse(text);
+
+          // Set the assistant's response
           newMsg.innerHTML = `<strong>Assistant:</strong><br>${html}`;
 
+          // Attach a click handler to follow-up links dynamically
           newMsg.querySelectorAll("a").forEach((link) => {
             link.addEventListener("click", function (e) {
-              e.preventDefault();
+              e.preventDefault(); // Prevent default link behavior
 
+              // Get the follow-up question from the data-question attribute
               const followUpQuestion = e.target.getAttribute("data-question");
               console.log("Follow-up question:", followUpQuestion);
 
               if (followUpQuestion) {
-                sendMessage(followUpQuestion);
+                sendMessage(followUpQuestion); // Send the follow-up question as a new query
               } else {
                 console.error("data-question attribute missing or null.");
               }
             });
           });
         } else {
+          // User or other roles
           newMsg.innerHTML = `<strong>${role}:</strong> ${text}`;
-
-          // Scroll "You" message to the top of the screen manually
-          chatLog.appendChild(newMsg); // Add it first so its position is calculated
-          setTimeout(() => {
-            const chatLogRect = chatLog.getBoundingClientRect();
-            const newMsgRect = newMsg.getBoundingClientRect();
-
-            // Calculate the offset needed to place the "You" message at the top of the viewport
-            const offset = newMsgRect.top - chatLogRect.top;
-
-            // Adjust the scroll position of the chatLog
-            chatLog.scrollTop += offset; // Scroll manually
-          }, 0); // Allow DOM to update before calculating positions
         }
 
+        // Append the new message to the chat log
         chatLog.appendChild(newMsg);
 
-        if (role === "Assistant") {
+        // Adjust scrolling behavior
+        if (role === "You") {
+          // Debugging
+          console.log("Scrolling 'You' message to the top");
+
+          // Scroll to place the "You" message at the top of the chat log
+          const newMsgOffset = newMsg.offsetTop;
+          console.log("newMsg.offsetTop:", newMsgOffset);
+          chatLog.scrollTop = newMsgOffset;
+        } else if (role === "Assistant") {
+          // Scroll to the bottom for Assistant responses
           chatLog.scrollTop = chatLog.scrollHeight;
         }
       }
