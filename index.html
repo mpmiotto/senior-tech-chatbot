@@ -6,169 +6,190 @@
     <title>Senior Tech Chatbot (Prototype)</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-      .responsive-textarea {
-        width: 100%;
-        max-width: 500px;
-        height: auto;
-        min-height: 50px;
-        font-size: 16px;
-        line-height: 1.5;
-        padding: 10px;
-        box-sizing: border-box;
-        resize: vertical;
-        overflow-wrap: break-word;
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
       }
 
-      @media (max-width: 600px) {
-        .responsive-textarea {
-          height: 80px; /* Reduce height for smaller screens */
-        }
+      /* Header with title and input field */
+      #header {
+        background-color: #007bff;
+        color: white;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      #header h1 {
+        margin: 0;
+        font-size: 1.5rem;
+      }
+
+      #header input {
+        margin-top: 10px;
+        width: 90%;
+        max-width: 500px;
+        padding: 10px;
+        font-size: 16px;
+        border: none;
+        border-radius: 5px;
+      }
+
+      #header button {
+        margin-top: 5px;
+        padding: 10px 20px;
+        background-color: white;
+        color: #007bff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      #header button:hover {
+        background-color: #e0e0e0;
+      }
+
+      /* Chat area */
+      #chatArea {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+        background-color: #f9f9f9;
+      }
+
+      .message {
+        margin: 10px 0;
+      }
+
+      .user {
+        text-align: left;
+        font-weight: bold;
+      }
+
+      .assistant {
+        text-align: left;
       }
     </style>
   </head>
   <body>
-    <!-- User ID Section -->
-    <label for="userId">User ID:</label>
-    <br />
-    <input
-      type="text"
-      id="userId"
-      placeholder="Enter your User ID"
-      style="
-        width: 100%;
-        max-width: 300px;
-        font-size: 16px;
-        padding: 10px;
-        box-sizing: border-box;
-      "
-    />
-    <br /><br />
+    <!-- Header Section -->
+    <div id="header">
+      <h1>Senior Tech Chatbot</h1>
+      <input
+        type="text"
+        id="userMessage"
+        placeholder="Type your question here..."
+      />
+      <button onclick="sendMessage()">Send</button>
+    </div>
 
-    <!-- Question Section -->
-    <label for="userMessage">Your question:</label>
-    <br />
-    <textarea
-      id="userMessage"
-      class="responsive-textarea"
-      placeholder="Type a tech question..."
-    ></textarea>
-    <br /><br />
-
-    <button
-      onclick="sendMessage()"
-      style="
-        font-size: 16px;
-        padding: 10px 20px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-      "
-    >
-      Send
-    </button>
-
-    <div id="chatLog"></div>
+    <!-- Chat Area -->
+    <div id="chatArea"></div>
 
     <script>
+      const chatArea = document.getElementById("chatArea");
+
+      // Function to send a message
       async function sendMessage(userInput = null) {
-        const userId = document.getElementById("userId").value.trim();
-        const message =
-          userInput || document.getElementById("userMessage").value.trim();
+        const userMessageInput = document.getElementById("userMessage");
+        const message = userInput || userMessageInput.value.trim();
 
-        if (!userId) {
-          alert("Please enter a User ID.");
-          return;
-        }
         if (!message) {
-          alert("Please type a question.");
+          alert("Please enter a question.");
           return;
         }
 
-        // Display user's message in the chat log
-        addToChatLog("You", message);
+        // Add the user's message to the chat area
+        addToChatArea("You", message);
+
+        // Show "thinking..." indicator
+        const thinkingIndicator = addToChatArea("Assistant", "Thinking...");
 
         try {
-          // Send POST request to your Node.js backend
+          // Send POST request to the backend
           const response = await fetch(
             "https://senior-tech-chatbot.onrender.com/api/chat",
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ userId, message }),
+              body: JSON.stringify({ message }),
             }
           );
 
           const data = await response.json();
 
+          // Remove "Thinking..." indicator
+          thinkingIndicator.remove();
+
           if (data.error) {
-            addToChatLog("Error", data.error);
+            addToChatArea("Error", data.error);
           } else {
-            addToChatLog("Assistant", data.assistant);
+            addToChatArea("Assistant", data.assistant);
           }
         } catch (error) {
-          addToChatLog(
+          // Remove "Thinking..." indicator
+          thinkingIndicator.remove();
+
+          addToChatArea(
             "Error",
             "Could not connect to the server. Please try again."
           );
-          console.error("Error sending message:", error);
+          console.error("Error:", error);
         }
 
-        // Clear the input box (if a user manually typed their question)
+        // Clear the input field (if user typed the query manually)
         if (!userInput) {
-          document.getElementById("userMessage").value = "";
+          userMessageInput.value = "";
         }
       }
 
-      function addToChatLog(role, text) {
-        const chatLog = document.getElementById("chatLog");
-        const newMsg = document.createElement("div");
+      // Function to add messages to the chat area
+      function addToChatArea(role, text) {
+        const messageDiv = document.createElement("div");
+        messageDiv.classList.add("message");
 
-        if (role === "Assistant") {
-          // Parse Markdown to HTML
-          const html = marked.parse(text);
+        if (role === "You") {
+          messageDiv.classList.add("user");
+          messageDiv.innerHTML = `<strong>${role}:</strong> ${text}`;
 
-          // Set the assistant's response
-          newMsg.innerHTML = `<strong>Assistant:</strong><br>${html}`;
+          // Add user's "You" message to the top of the chat area
+          chatArea.prepend(messageDiv);
+          chatArea.scrollTop = 0; // Ensure it is visible at the top
+        } else {
+          messageDiv.classList.add("assistant");
+          messageDiv.innerHTML = `<strong>${role}:</strong> ${marked.parse(
+            text
+          )}`;
 
-          // Attach a click handler to follow-up links dynamically
-          newMsg.querySelectorAll("a").forEach((link) => {
+          // Attach dynamic event listener to follow-up links
+          messageDiv.querySelectorAll("a").forEach((link) => {
             link.addEventListener("click", function (e) {
               e.preventDefault(); // Prevent default link behavior
 
-              // Get the follow-up question from the data-question attribute
+              // Extract follow-up question from data-question attribute
               const followUpQuestion = e.target.getAttribute("data-question");
               console.log("Follow-up question:", followUpQuestion);
 
               if (followUpQuestion) {
-                sendMessage(followUpQuestion); // Send the follow-up question as a new query
+                sendMessage(followUpQuestion); // Treat as a new query
               } else {
                 console.error("data-question attribute missing or null.");
               }
             });
           });
-        } else {
-          // User or other roles
-          newMsg.innerHTML = `<strong>${role}:</strong> ${text}`;
+
+          // Append assistant's response below "You" message
+          chatArea.appendChild(messageDiv);
         }
 
-        // Append the new message to the chat log
-        chatLog.appendChild(newMsg);
-
-        // Adjust scrolling behavior
-        if (role === "You") {
-          // Debugging
-          console.log("Scrolling 'You' message to the top");
-
-          // Scroll to place the "You" message at the top of the chat log
-          const newMsgOffset = newMsg.offsetTop;
-          console.log("newMsg.offsetTop:", newMsgOffset);
-          chatLog.scrollTop = newMsgOffset;
-        } else if (role === "Assistant") {
-          // Scroll to the bottom for Assistant responses
-          chatLog.scrollTop = chatLog.scrollHeight;
-        }
+        return messageDiv;
       }
     </script>
   </body>
