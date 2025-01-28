@@ -143,6 +143,7 @@
               console.log("Follow-up question:", followUpQuestion);
 
               if (followUpQuestion) {
+                addToChatLog("You", followUpQuestion); // Add the follow-up question
                 sendMessage(followUpQuestion); // Send the follow-up question as a new query
               } else {
                 console.error("data-question attribute missing or null.");
@@ -155,13 +156,13 @@
         }
 
         chatLog.appendChild(newMsg);
-        // Ensure general auto-scrolling for non-"You" messages
-        chatLog.scrollTop = chatLog.scrollHeight;
+
         // <<CHANGED CODE>>: Scroll the "You" message to the top of the chat log
         if (role === "You") {
-          // <<CHANGED CODE>>
-          newMsg.scrollIntoView({ behavior: "smooth", block: "start" }); // <<CHANGED CODE>>
-        } // <<CHANGED CODE>>
+          newMsg.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else if (role === "Assistant") {
+          chatLog.scrollTop = chatLog.scrollHeight; // Keep assistant responses at the bottom
+        }
       }
     </script>
   </body>
