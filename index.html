@@ -172,7 +172,7 @@
         const thinkingIndicator = addToChatArea("Assistant", "Thinking...");
 
         // Scroll to the bottom after adding the "You" message
-        scrollToBottom();
+        scrollToBottom(true);
 
         try {
           const response = await fetch(
@@ -261,9 +261,10 @@
       }
 
       // Function to scroll to the bottom of the chat area
-      function scrollToBottom() {
+      function scrollToBottom(extraPadding = false) {
+        const paddingOffset = extraPadding ? 50 : 0; // Adds extra scroll space to push above mobile browser UI
         chatArea.scrollTo({
-          top: chatArea.scrollHeight,
+          top: chatArea.scrollHeight + paddingOffset,
           behavior: "smooth",
         });
       }
