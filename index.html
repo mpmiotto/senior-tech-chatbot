@@ -161,6 +161,10 @@
         if (role === "You") {
           messageDiv.classList.add("user");
           messageDiv.innerHTML = `<strong>${role}:</strong> ${text}`;
+
+          // Append the "You" message and scroll it to the top
+          chatArea.appendChild(messageDiv);
+          scrollToTop(messageDiv);
         } else {
           messageDiv.classList.add("assistant");
           messageDiv.innerHTML = `<strong>${role}:</strong> ${marked.parse(
@@ -177,19 +181,16 @@
               console.log("Follow-up question:", followUpQuestion);
 
               if (followUpQuestion) {
-                // Scroll immediately to clear the chat area
-                const userMessageDiv = addToChatArea("You", followUpQuestion);
-                scrollToTop(userMessageDiv);
                 sendMessage(followUpQuestion); // Treat as a new query
               } else {
                 console.error("data-question attribute missing or null.");
               }
             });
           });
-        }
 
-        // Append the new message to the chat area
-        chatArea.appendChild(messageDiv);
+          // Append assistant's response below "You" message
+          chatArea.appendChild(messageDiv);
+        }
 
         return messageDiv;
       }
