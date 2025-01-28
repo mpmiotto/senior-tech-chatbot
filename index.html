@@ -106,11 +106,11 @@
           return;
         }
 
+        // Scroll down slightly to make room for the "You:" message
+        scrollDownSlightly();
+
         // Add the user's message to the chat area
         const userMessageDiv = addToChatArea("You", message);
-
-        // Scroll up slightly to give feedback
-        scrollUpSlightly();
 
         // Show "thinking..." indicator
         const thinkingIndicator = addToChatArea("Assistant", "Thinking...");
@@ -191,10 +191,10 @@
         return messageDiv;
       }
 
-      // Function to scroll up slightly in the chat area
-      function scrollUpSlightly() {
+      // Function to scroll down slightly in the chat area
+      function scrollDownSlightly() {
         chatArea.scrollTo({
-          top: chatArea.scrollTop - 100, // Adjust by 100px (approx. 10 lines)
+          top: chatArea.scrollTop + 100, // Adjust by 100px (approx. 10 lines)
           behavior: "smooth",
         });
       }
