@@ -28,7 +28,6 @@
   </head>
   <body>
     <!-- User ID Section -->
-    <!-- User ID Section -->
     <label for="userId">User ID:</label>
     <br />
     <input
@@ -127,38 +126,36 @@
         const newMsg = document.createElement("div");
 
         if (role === "Assistant") {
-          // Parse Markdown to HTML
           const html = marked.parse(text);
-
-          // Set the assistant's response
           newMsg.innerHTML = `<strong>Assistant:</strong><br>${html}`;
 
-          // Attach a click handler to follow-up links dynamically
           newMsg.querySelectorAll("a").forEach((link) => {
             link.addEventListener("click", function (e) {
-              e.preventDefault(); // Prevent default link behavior
+              e.preventDefault();
 
-              // Get the follow-up question from the data-question attribute
               const followUpQuestion = e.target.getAttribute("data-question");
               console.log("Follow-up question:", followUpQuestion);
 
               if (followUpQuestion) {
-                sendMessage(followUpQuestion); // Send the follow-up question as a new query
+                sendMessage(followUpQuestion);
               } else {
                 console.error("data-question attribute missing or null.");
               }
             });
           });
-        } else newMsg.innerHTML = `<strong>${role}:</strong> ${text}`;
+        } else {
+          newMsg.innerHTML = `<strong>${role}:</strong> ${text}`;
+        }
 
-        // Scroll "You" message to the top
-        newMsg.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+        chatLog.appendChild(newMsg);
 
-      // Append the message and maintain general scrolling behavior
-      chatLog.appendChild(newMsg);
-      if (role === "Assistant") {
-        chatLog.scrollTop = chatLog.scrollHeight;
+        if (role === "You") {
+          newMsg.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        if (role === "Assistant") {
+          chatLog.scrollTop = chatLog.scrollHeight;
+        }
       }
     </script>
   </body>
