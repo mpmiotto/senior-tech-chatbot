@@ -6,7 +6,6 @@
     <title>Senior Tech Chatbot (Prototype)</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-      /* General styling */
       body {
         font-family: Arial, sans-serif;
         margin: 0;
@@ -17,7 +16,7 @@
         overflow: hidden;
       }
 
-      /* Header styling */
+      /* Header with title and input field */
       #header {
         background-color: #007bff;
         color: white;
@@ -57,7 +56,7 @@
         background-color: #e0e0e0;
       }
 
-      /* Chat area styling */
+      /* Chat area */
       #chatArea {
         flex: 1;
         overflow-y: auto;
@@ -108,7 +107,7 @@
         }
 
         // Add the user's message to the chat area
-        addToChatArea("You", message);
+        const userMessageDiv = addToChatArea("You", message);
 
         // Show "thinking..." indicator
         const thinkingIndicator = addToChatArea("Assistant", "Thinking...");
@@ -149,6 +148,9 @@
         if (!userInput) {
           userMessageInput.value = "";
         }
+
+        // Scroll the "You:" message to the top of the chat area
+        scrollToTop(userMessageDiv);
       }
 
       // Function to add messages to the chat area
@@ -183,13 +185,19 @@
           });
         }
 
-        // Append message to the chat area
+        // Append the new message to the chat area
         chatArea.appendChild(messageDiv);
 
-        // Scroll the chat area to the bottom
-        chatArea.scrollTop = chatArea.scrollHeight;
-
         return messageDiv;
+      }
+
+      // Function to scroll the "You:" message to the top of the chat area
+      function scrollToTop(messageDiv) {
+        const offsetTop = messageDiv.offsetTop; // Get vertical position
+        chatArea.scrollTo({
+          top: offsetTop,
+          behavior: "smooth", // Ensure smooth scrolling
+        });
       }
     </script>
   </body>
