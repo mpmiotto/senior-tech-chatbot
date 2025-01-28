@@ -107,7 +107,7 @@
         }
 
         // Add the user's message to the chat area
-        addToChatArea("You", message);
+        const userMessageDiv = addToChatArea("You", message);
 
         // Show "thinking..." indicator
         const thinkingIndicator = addToChatArea("Assistant", "Thinking...");
@@ -148,6 +148,9 @@
         if (!userInput) {
           userMessageInput.value = "";
         }
+
+        // Scroll "You" message to the top
+        userMessageDiv.scrollIntoView({ behavior: "smooth", block: "start" });
       }
 
       // Function to add messages to the chat area
@@ -158,10 +161,7 @@
         if (role === "You") {
           messageDiv.classList.add("user");
           messageDiv.innerHTML = `<strong>${role}:</strong> ${text}`;
-
-          // Add user's "You" message to the top of the chat area
-          chatArea.prepend(messageDiv);
-          chatArea.scrollTop = 0; // Ensure it is visible at the top
+          chatArea.prepend(messageDiv); // Add user's message at the top
         } else {
           messageDiv.classList.add("assistant");
           messageDiv.innerHTML = `<strong>${role}:</strong> ${marked.parse(
@@ -185,8 +185,7 @@
             });
           });
 
-          // Append assistant's response below "You" message
-          chatArea.appendChild(messageDiv);
+          chatArea.appendChild(messageDiv); // Append assistant's response below
         }
 
         return messageDiv;
