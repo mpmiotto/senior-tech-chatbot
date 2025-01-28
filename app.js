@@ -2,13 +2,14 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { OpenAI } = require("openai");
+const path = require("path");
 
 // Initialize Express and OpenAI
 const app = express();
 app.use(cors());
 app.use(express.json());
-const path = require("path");
 
+// Serve the frontend file
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
@@ -36,26 +37,25 @@ Your responses must:
 8. Ensure that the follow-up link questions are on two separate lines.
 `;
 
-// In-memory data for context (for POST requests)
+// In-memory data for context
 const messages = [];
 
-// POST endpoint (for the chatbot UI)
+// POST endpoint (for chatbot queries)
 app.post("/api/chat", async (req, res) => {
   try {
-    const { userId, message } = req.body;
+    const { message } = req.body;
 
-    if (!userId || !message) {
-      return res.status(400).json({ error: "Missing userId or message" });
+    if (!message) {
+      return res.status(400).json({ error: "Message is required" });
     }
 
     // Add user message to in-memory store
-    messages.push({ userId, role: "user", content: message });
+    messages.push({ role: "user", content: message });
 
     // Build the conversation
-    const userMessages = messages.filter((m) => m.userId === userId);
     const conversation = [
       { role: "system", content: SYSTEM_PROMPT },
-      ...userMessages.map((m) => ({ role: m.role, content: m.content })),
+      ...messages.map((m) => ({ role: m.role, content: m.content })),
     ];
 
     // GPT-4 response
@@ -66,11 +66,8 @@ app.post("/api/chat", async (req, res) => {
 
     const assistantText = response.choices[0].message.content;
 
-    // Debug: Log GPT response
-    // console.log('Assistant Response (POST):', assistantText);
-
     // Add assistant response to memory
-    messages.push({ userId, role: "assistant", content: assistantText });
+    messages.push({ role: "assistant", content: assistantText });
 
     res.json({ assistant: assistantText });
   } catch (error) {
@@ -82,7 +79,8 @@ app.post("/api/chat", async (req, res) => {
 // GET endpoint (for hyperlinks in new tabs)
 app.get("/api/chat", async (req, res) => {
   try {
-    const question = req.query.question; // Get question from URL
+    const question = req.query.question;
+
     if (!question) {
       return res
         .status(400)
@@ -102,9 +100,6 @@ app.get("/api/chat", async (req, res) => {
     });
 
     const assistantText = response.choices[0].message.content;
-
-    // Debug: Log GPT response
-    // console.log('Assistant Response (GET):', assistantText);
 
     res.send(assistantText); // Send response directly as plain text
   } catch (error) {
