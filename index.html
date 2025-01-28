@@ -85,12 +85,12 @@
         color: black;
       }
 
-      /* Chat area */
       #chatArea {
         flex: 1;
-        overflow-y: auto;
+        overflow-y: scroll; /* Force scrolling */
         padding: 10px;
         background-color: #f9f9f9;
+        -webkit-overflow-scrolling: touch; /* Fix bounce issue on Safari */
       }
 
       .message {
@@ -186,13 +186,9 @@
         // Add the "You:" message to the chat area
         addToChatArea("You", message);
 
-        // Add the "Thinking..." message with animation
-        const thinkingIndicator = addToChatArea(
-          "Assistant",
-          `<span class="thinking-text">Thinking, please give me a few seconds to think about this.</span>`
-        );
-        // Scroll to the bottom after adding the "You" message
-        scrollToBottom(true);
+        // Add the "Thinking..." message
+        const thinkingIndicator = addToChatArea("Assistant", "Thinking...");
+        scrollToBottom(); // Force scroll immediately
 
         try {
           const response = await fetch(
