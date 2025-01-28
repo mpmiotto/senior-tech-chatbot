@@ -197,10 +197,12 @@
 
       // Function to scroll the "You:" message to the top of the chat area
       function scrollToTop(messageDiv) {
-        const offsetTop = messageDiv.offsetTop; // Get vertical position
+        const offsetTop = messageDiv.offsetTop;
+        const scrollTop = chatArea.scrollTop;
+        const relativeTop = offsetTop - scrollTop;
         chatArea.scrollTo({
-          top: offsetTop,
-          behavior: "smooth", // Ensure smooth scrolling
+          top: relativeTop,
+          behavior: "smooth",
         });
       }
     </script>
