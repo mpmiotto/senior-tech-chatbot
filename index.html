@@ -146,14 +146,18 @@
         } else {
           newMsg.innerHTML = `<strong>${role}:</strong> ${text}`;
 
-          // Scroll the "You" message to the top of the screen
+          // Scroll "You" message to the top of the screen manually
+          chatLog.appendChild(newMsg); // Add it first so its position is calculated
           setTimeout(() => {
-            newMsg.scrollIntoView({
-              behavior: "smooth",
-              block: "start", // Ensures the element aligns at the top of the viewport
-              inline: "nearest",
-            });
-          }, 100); // Delay to allow DOM changes to take effect
+            const chatLogRect = chatLog.getBoundingClientRect();
+            const newMsgRect = newMsg.getBoundingClientRect();
+
+            // Calculate the offset needed to place the "You" message at the top of the viewport
+            const offset = newMsgRect.top - chatLogRect.top;
+
+            // Adjust the scroll position of the chatLog
+            chatLog.scrollTop += offset; // Scroll manually
+          }, 0); // Allow DOM to update before calculating positions
         }
 
         chatLog.appendChild(newMsg);
