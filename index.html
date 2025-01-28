@@ -19,6 +19,24 @@
         overflow: hidden;
       }
 
+      /* Add the keyframes outside of @media */
+      @keyframes flashing {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      .thinking-text {
+        font-style: italic;
+        animation: flashing 1.2s infinite;
+      }
+
       /* Header with title and input field */
       #header {
         background-color: black;
@@ -46,8 +64,8 @@
 
       #header input {
         width: 100%;
-        padding: 12px 40px 12px 12px; /* Space for button */
-        font-size: 18px; /* Ensures iOS does not zoom in */
+        padding: 12px 40px 12px 12px;
+        font-size: 18px;
         border: none;
         border-radius: 5px;
         outline: none;
@@ -111,7 +129,7 @@
         }
 
         #header input {
-          font-size: 18px; /* Ensures iOS does not zoom in */
+          font-size: 18px;
           padding: 10px 40px 10px 10px;
         }
 
@@ -168,9 +186,11 @@
         // Add the "You:" message to the chat area
         addToChatArea("You", message);
 
-        // Add a "Thinking..." message below the "You:" message
-        const thinkingIndicator = addToChatArea("Assistant", "Thinking...");
-
+        // Add the "Thinking..." message with animation
+        const thinkingIndicator = addToChatArea(
+          "Assistant",
+          `<span class="thinking-text">Thinking, please give me a few seconds to think about this.</span>`
+        );
         // Scroll to the bottom after adding the "You" message
         scrollToBottom(true);
 
@@ -262,7 +282,11 @@
 
       // Function to scroll to the bottom of the chat area
       function scrollToBottom(extraPadding = false) {
-        const paddingOffset = extraPadding ? 50 : 0; // Adds extra scroll space to push above mobile browser UI
+        const isSafari = /^((?!chrome|android).)*safari/i.test(
+          navigator.userAgent
+        );
+        const paddingOffset = extraPadding ? (isSafari ? 100 : 50) : 0; // Increase padding for Safari
+
         chatArea.scrollTo({
           top: chatArea.scrollHeight + paddingOffset,
           behavior: "smooth",
