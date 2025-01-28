@@ -106,13 +106,22 @@
         text-align: left;
         font-weight: bold;
         font-size: 22px; /* Larger font for user questions */
+        color: red;
       }
 
       .assistant {
         text-align: left;
         font-size: 20px; /* Larger font for assistant responses */
       }
+      .user strong {
+        color: red;
+        font-weight: bold;
+      }
 
+      .assistant strong {
+        color: green;
+        font-weight: bold;
+      }
       .assistant a {
         display: block;
         margin-top: 10px; /* Add spacing between links */
@@ -262,7 +271,9 @@
           messageDiv.innerHTML = `<strong>${role}:</strong> ${text}`;
         } else if (role === "Assistant" || role === "Error") {
           messageDiv.classList.add("assistant");
-          messageDiv.innerHTML = `<strong>${role}:</strong> ${marked.parse(
+          const assistantLabel =
+            role === "Assistant" ? "Assistant's Response" : "Error";
+          messageDiv.innerHTML = `<strong>${assistantLabel}:</strong> ${marked.parse(
             text
           )}`;
         }
