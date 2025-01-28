@@ -107,10 +107,7 @@
         }
 
         // Add the user's message to the chat area
-        const userMessageDiv = addToChatArea("You", message);
-
-        // Scroll the user's message to the top of the chat area
-        scrollToUserMessage(userMessageDiv);
+        addToChatArea("You", message);
 
         // Show "thinking..." indicator
         const thinkingIndicator = addToChatArea("Assistant", "Thinking...");
@@ -153,6 +150,14 @@
         }
       }
 
+      // Function to scroll the chat area to the top
+      function clearChatArea() {
+        chatArea.scrollTo({
+          top: 0, // Scroll to the top of the chat area
+          behavior: "smooth", // Smooth scrolling
+        });
+      }
+
       // Function to add messages to the chat area
       function addToChatArea(role, text) {
         const messageDiv = document.createElement("div");
@@ -161,6 +166,13 @@
         if (role === "You") {
           messageDiv.classList.add("user");
           messageDiv.innerHTML = `<strong>${role}:</strong> ${text}`;
+
+          // Scroll up to clear older content before showing "You" message
+          clearChatArea();
+
+          // Add "You" message at the bottom and then scroll to the top
+          chatArea.appendChild(messageDiv);
+          chatArea.scrollTo({ top: 0, behavior: "smooth" });
         } else {
           messageDiv.classList.add("assistant");
           messageDiv.innerHTML = `<strong>${role}:</strong> ${marked.parse(
@@ -183,21 +195,12 @@
               }
             });
           });
+
+          // Append assistant's response below "You" message
+          chatArea.appendChild(messageDiv);
         }
 
-        chatArea.appendChild(messageDiv); // Append to the chat area
         return messageDiv;
-      }
-
-      // Function to scroll the "You" message to align just below the header
-      function scrollToUserMessage(userMessageDiv) {
-        const headerHeight = document.getElementById("header").offsetHeight;
-        const chatAreaScrollOffset = userMessageDiv.offsetTop - headerHeight;
-
-        chatArea.scrollTo({
-          top: chatAreaScrollOffset,
-          behavior: "smooth",
-        });
       }
     </script>
   </body>
