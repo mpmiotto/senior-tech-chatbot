@@ -17,6 +17,7 @@
         flex-direction: column;
         height: 100vh;
         overflow: hidden;
+        font-size: 20px; /* Base font size for readability */
       }
 
       /* Add the keyframes outside of @media */
@@ -35,6 +36,7 @@
       .thinking-text {
         font-style: italic;
         animation: flashing 1.2s infinite;
+        font-size: 18px; /* Ensure readability */
       }
 
       /* Header with title and input field */
@@ -49,7 +51,7 @@
 
       #header h1 {
         margin: 0;
-        font-size: 1.5rem;
+        font-size: 2rem; /* Increased size for readability */
         text-align: center;
       }
 
@@ -60,12 +62,13 @@
         width: 90%;
         max-width: 500px;
         position: relative;
+        margin-top: 10px;
       }
 
       #header input {
         width: 100%;
-        padding: 12px 40px 12px 12px;
-        font-size: 18px;
+        padding: 14px 40px 14px 12px; /* Increased padding for comfort */
+        font-size: 20px; /* Ensures iOS does not zoom in */
         border: none;
         border-radius: 5px;
         outline: none;
@@ -96,33 +99,40 @@
 
       .message {
         margin: 10px 0;
+        font-size: 20px; /* Ensure readability for seniors */
       }
 
       .user {
         text-align: left;
         font-weight: bold;
-        font-size: 18px;
+        font-size: 22px; /* Larger font for user questions */
       }
 
       .assistant {
         text-align: left;
+        font-size: 20px; /* Larger font for assistant responses */
       }
 
       .assistant a {
         display: block;
-        margin-top: 5px;
+        margin-top: 10px; /* Add spacing between links */
+        font-size: 20px; /* Ensure readability for links */
       }
 
       .separator {
         border: none;
         border-top: 5px solid #ccc;
-        margin: 15px 0;
+        margin: 20px 0; /* Adds spacing for clarity */
       }
 
       /* Responsive design for smaller screens */
       @media (max-width: 600px) {
+        body {
+          font-size: 22px; /* Slightly larger base font on small screens */
+        }
+
         #header h1 {
-          font-size: 1.2rem;
+          font-size: 1.8rem; /* Adjust for smaller screens */
         }
 
         .input-container {
@@ -130,12 +140,20 @@
         }
 
         #header input {
-          font-size: 18px;
-          padding: 10px 40px 10px 10px;
+          font-size: 22px; /* Prevent zoom and improve readability */
+          padding: 14px;
         }
 
         #header button {
           right: 5px;
+        }
+
+        .message {
+          font-size: 22px; /* Slightly larger text for small screens */
+        }
+
+        .assistant a {
+          font-size: 22px;
         }
       }
     </style>
