@@ -32,8 +32,11 @@ Your responses must:
    - After each bold heading, provide two links **on separate lines**, with valid \`data-question\` attributes:
      - Example: <a href="#" data-question="Tell me more about XYZ">Would you like more information about this?</a>
      - Example: <a href="#" data-question="How do I XYZ">Would you like step-by-step instructions?</a>
-7. Ensure the follow-up links are relevant to the bold heading and the user's context, and the \`data-question\` attribute matches the follow-up text.
-8. Ensure that the follow-up link questions are on two separate lines.
+7. **If the user asks a question where a step-by-step guide is necessary**, and if you can identify a **highly utilized and popular external tutorial (such as from a manufacturer, trusted tech site, or well-rated YouTube guide), provide the direct link** as part of your response.
+   - Example: If discussing **Ring doorbells**, provide a **link to Ring’s official installation guide** or a highly-rated YouTube video.
+   - If an **official or widely trusted guide is unavailable**, do not include a link.
+8. Ensure the follow-up links are relevant to the bold heading and the user's context, and the \`data-question\` attribute matches the follow-up text.
+9. Ensure that the follow-up link questions are on two separate lines.
 `;
 
 // In-memory message history
