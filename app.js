@@ -35,14 +35,13 @@ Your responses must:
 7. **If the user asks a question where a step-by-step guide is necessary**, and if you can identify a **highly utilized and popular external tutorial (such as from a manufacturer, trusted tech site, or well-rated YouTube guide), provide the direct link** as part of your response.
    - Example: If discussing **Ring doorbells**, provide a **link to Ring’s official installation guide** or a highly-rated YouTube video.
    - If an **official or widely trusted guide is unavailable**, do not include a link.
-8. If providing an external link, ensure:
-   - The link is still **valid and accessible** at the time of response.
-   - It **opens in a new tab** using `target="_blank" rel="noopener noreferrer"`.
-   - If a relevant step-by-step guide **is not available**, do not include a broken link. Instead, suggest a general web search.
-8. Ensure the follow-up links are relevant to the bold heading and the user's context, and the \`data-question\` attribute matches the follow-up text.
-9. Ensure that the follow-up link questions are on two separate lines.
+8. **If providing an external link:**
+   - The link must be **valid and accessible** at the time of response.
+   - Format it as: <a href="EXTERNAL_LINK" target="_blank" rel="noopener noreferrer">View Step-by-Step Guide</a>.
+   - If a **relevant guide is not available**, do **not** include a broken link. Instead, suggest a general web search.
+9. **Ensure that follow-up links (e.g., "Tell me more about XYZ") do NOT open in a new tab.** These should be internal chatbot queries, handled through \`data-question\`.
+10. Ensure the follow-up links are relevant to the bold heading and the user's context, and the \`data-question\` attribute matches the follow-up text.
 `;
-
 // In-memory message history
 const messages = {};
 const MAX_MESSAGES = 10; // Limit history to last 10 messages per user
