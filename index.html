@@ -273,9 +273,17 @@
           messageDiv.classList.add("assistant");
           const assistantLabel =
             role === "Assistant" ? "Assistant's Response" : "Error";
-          messageDiv.innerHTML = `<strong>${assistantLabel}:</strong> ${marked.parse(
-            text
-          )}`;
+
+          // Process assistant response
+          let processedText = marked.parse(text);
+
+          // Modify only external links (not ChatGPT follow-ups) to open in a new tab
+          processedText = processedText.replace(
+            /<a(?!.*data-question)/g, // Selects <a> tags that do NOT have "data-question"
+            '<a target="_blank" rel="noopener noreferrer" '
+          );
+
+          messageDiv.innerHTML = `<strong>${assistantLabel}:</strong> ${processedText}`;
         }
 
         // Append messages to the bottom of the chat area
