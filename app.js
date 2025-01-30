@@ -18,14 +18,22 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Function to check if a YouTube video is valid
+// Function to check if a YouTube video is valid by verifying response content
 async function checkYouTubeVideo(url) {
   try {
-    const response = await fetch(url, { method: "HEAD" });
-    return response.ok;
+    const response = await fetch(url);
+    const text = await response.text();
+
+    // Check if the page contains the unavailable message
+    if (text.includes("This video isn't available anymore")) {
+      console.log(`Invalid YouTube video detected: ${url}`);
+      return false;
+    }
+
+    return true;
   } catch (error) {
     console.error("YouTube validation error:", error);
-    return false;
+    return false; // Assume invalid if an error occurs
   }
 }
 
@@ -103,10 +111,10 @@ app.post("/api/chat", async (req, res) => {
       for (let youtubeURL of youtubeLinks) {
         const isValid = await checkYouTubeVideo(youtubeURL);
         if (!isValid) {
-          console.log(`Invalid YouTube link detected: ${youtubeURL}`);
-          assistantText = assistantText.replace(youtubeURL, ""); // Remove bad link
-          assistantText +=
-            "\n\n(The suggested video was unavailable, try searching YouTube manually.)";
+          assistantText = assistantText.replace(
+            youtubeURL,
+            "(The suggested video is unavailable, please search YouTube manually.)"
+          );
         }
       }
     }
@@ -156,10 +164,10 @@ app.get("/api/chat", async (req, res) => {
       for (let youtubeURL of youtubeLinks) {
         const isValid = await checkYouTubeVideo(youtubeURL);
         if (!isValid) {
-          console.log(`Invalid YouTube link detected: ${youtubeURL}`);
-          assistantText = assistantText.replace(youtubeURL, ""); // Remove bad link
-          assistantText +=
-            "\n\n(The suggested video was unavailable, try searching YouTube manually.)";
+          assistantText = assistantText.replace(
+            youtubeURL,
+            "(The suggested video is unavailable, please search YouTube manually.)"
+          );
         }
       }
     }
