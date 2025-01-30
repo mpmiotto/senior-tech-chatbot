@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { OpenAI } = require("openai");
+const fetch = require("node-fetch"); // Required for YouTube link validation
 
 // Initialize Express and OpenAI
 const app = express();
@@ -16,6 +17,17 @@ app.get("/", (req, res) => {
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+// Function to check if a YouTube video is valid
+async function checkYouTubeVideo(url) {
+  try {
+    const response = await fetch(url, { method: "HEAD" });
+    return response.ok;
+  } catch (error) {
+    console.error("YouTube validation error:", error);
+    return false;
+  }
+}
 
 // Define the system prompt
 const SYSTEM_PROMPT = `
@@ -42,6 +54,7 @@ Your responses must:
 9. **Ensure that follow-up links (e.g., "Tell me more about XYZ") do NOT open in a new tab.** These should be internal chatbot queries, handled through \`data-question\`.
 10. Ensure the follow-up links are relevant to the bold heading and the user's context, and the \`data-question\` attribute matches the follow-up text.
 `;
+
 // In-memory message history
 const messages = {};
 const MAX_MESSAGES = 10; // Limit history to last 10 messages per user
@@ -80,7 +93,23 @@ app.post("/api/chat", async (req, res) => {
       messages: conversation,
     });
 
-    const assistantText = response.choices[0].message.content;
+    let assistantText = response.choices[0].message.content;
+
+    // Check for YouTube links in the response
+    const youtubeRegex = /https:\/\/www\.youtube\.com\/watch\?v=[\w-]+/g;
+    let youtubeLinks = assistantText.match(youtubeRegex);
+
+    if (youtubeLinks) {
+      for (let youtubeURL of youtubeLinks) {
+        const isValid = await checkYouTubeVideo(youtubeURL);
+        if (!isValid) {
+          console.log(`Invalid YouTube link detected: ${youtubeURL}`);
+          assistantText = assistantText.replace(youtubeURL, ""); // Remove bad link
+          assistantText +=
+            "\n\n(The suggested video was unavailable, try searching YouTube manually.)";
+        }
+      }
+    }
 
     // Add assistant response to history
     messages[userId].push({ role: "assistant", content: assistantText });
@@ -117,7 +146,24 @@ app.get("/api/chat", async (req, res) => {
       messages: conversation,
     });
 
-    const assistantText = response.choices[0].message.content;
+    let assistantText = response.choices[0].message.content;
+
+    // Validate YouTube links in GET responses
+    const youtubeRegex = /https:\/\/www\.youtube\.com\/watch\?v=[\w-]+/g;
+    let youtubeLinks = assistantText.match(youtubeRegex);
+
+    if (youtubeLinks) {
+      for (let youtubeURL of youtubeLinks) {
+        const isValid = await checkYouTubeVideo(youtubeURL);
+        if (!isValid) {
+          console.log(`Invalid YouTube link detected: ${youtubeURL}`);
+          assistantText = assistantText.replace(youtubeURL, ""); // Remove bad link
+          assistantText +=
+            "\n\n(The suggested video was unavailable, try searching YouTube manually.)";
+        }
+      }
+    }
+
     res.send(assistantText);
   } catch (error) {
     console.error("Error in GET /api/chat:", error);
