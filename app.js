@@ -2,7 +2,6 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { OpenAI } = require("openai");
-const fetch = require("node-fetch"); // Required for YouTube link validation
 
 // Initialize Express and OpenAI
 const app = express();
@@ -18,23 +17,10 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Function to check if a YouTube video is valid by verifying response content
-async function checkYouTubeVideo(url) {
-  try {
-    const response = await fetch(url);
-    const text = await response.text();
-
-    // Check if the page contains the unavailable message
-    if (text.includes("This video isn't available anymore")) {
-      console.log(`Invalid YouTube video detected: ${url}`);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error("YouTube validation error:", error);
-    return false; // Assume invalid if an error occurs
-  }
+// Function to generate a Google search URL
+function generateGoogleSearchURL(query) {
+  const encodedQuery = encodeURIComponent(query);
+  return `https://www.google.com/search?q=${encodedQuery}`;
 }
 
 // Define the system prompt
@@ -52,15 +38,12 @@ Your responses must:
    - After each bold heading, provide two links **on separate lines**, with valid \`data-question\` attributes:
      - Example: <a href="#" data-question="Tell me more about XYZ">Would you like more information about this?</a>
      - Example: <a href="#" data-question="How do I XYZ">Would you like step-by-step instructions?</a>
-7. **If the user asks a question where a step-by-step guide is necessary**, and if you can identify a **highly utilized and popular external tutorial (such as from a manufacturer, trusted tech site, or well-rated YouTube guide), provide the direct link** as part of your response.
-   - Example: If discussing **Ring doorbells**, provide a **link to Ring’s official installation guide** or a highly-rated YouTube video.
-   - If an **official or widely trusted guide is unavailable**, do not include a link.
-8. **If providing an external link:**
-   - The link must be **valid and accessible** at the time of response.
-   - Format it as: <a href="EXTERNAL_LINK" target="_blank" rel="noopener noreferrer">View Step-by-Step Guide</a>.
-   - If a **relevant guide is not available**, do **not** include a broken link. Instead, suggest a general web search.
-9. **Ensure that follow-up links (e.g., "Tell me more about XYZ") do NOT open in a new tab.** These should be internal chatbot queries, handled through \`data-question\`.
-10. Ensure the follow-up links are relevant to the bold heading and the user's context, and the \`data-question\` attribute matches the follow-up text.
+7. **If the user asks a question where a step-by-step guide is necessary**, generate a **Google search link** instead of a direct external link.
+   - Example: If discussing **Ring doorbells**, generate a **Google search link for "Step-by-step guide for installing Ring Doorbell"**.
+   - Format the search link as:
+     <a href="https://www.google.com/search?q=step+by+step+guide+for+installing+Ring+Doorbell" target="_blank" rel="noopener noreferrer">View Step-by-Step Guide on Google</a>
+8. **Ensure that follow-up links (e.g., "Tell me more about XYZ") do NOT open in a new tab.** These should be internal chatbot queries, handled through \`data-question\`.
+9. Ensure the follow-up links are relevant to the bold heading and the user's context, and the \`data-question\` attribute matches the follow-up text.
 `;
 
 // In-memory message history
@@ -103,19 +86,15 @@ app.post("/api/chat", async (req, res) => {
 
     let assistantText = response.choices[0].message.content;
 
-    // Check for YouTube links in the response
-    const youtubeRegex = /https:\/\/www\.youtube\.com\/watch\?v=[\w-]+/g;
-    let youtubeLinks = assistantText.match(youtubeRegex);
-
-    if (youtubeLinks) {
-      for (let youtubeURL of youtubeLinks) {
-        const isValid = await checkYouTubeVideo(youtubeURL);
-        if (!isValid) {
-          assistantText = assistantText.replace(
-            youtubeURL,
-            "(The suggested video is unavailable, please search YouTube manually.)"
-          );
-        }
+    // Modify response: Detect when a step-by-step guide is needed
+    const stepByStepKeywords = ["how to", "step-by-step guide", "installation"];
+    for (let keyword of stepByStepKeywords) {
+      if (message.toLowerCase().includes(keyword)) {
+        const searchQuery = `Step by step guide for ${message}`;
+        const googleSearchURL = generateGoogleSearchURL(searchQuery);
+        assistantText += `\n\nFor the most up-to-date information, you can search Google:  
+        <a href="${googleSearchURL}" target="_blank" rel="noopener noreferrer">View Step-by-Step Guide on Google</a>`;
+        break;
       }
     }
 
@@ -156,19 +135,15 @@ app.get("/api/chat", async (req, res) => {
 
     let assistantText = response.choices[0].message.content;
 
-    // Validate YouTube links in GET responses
-    const youtubeRegex = /https:\/\/www\.youtube\.com\/watch\?v=[\w-]+/g;
-    let youtubeLinks = assistantText.match(youtubeRegex);
-
-    if (youtubeLinks) {
-      for (let youtubeURL of youtubeLinks) {
-        const isValid = await checkYouTubeVideo(youtubeURL);
-        if (!isValid) {
-          assistantText = assistantText.replace(
-            youtubeURL,
-            "(The suggested video is unavailable, please search YouTube manually.)"
-          );
-        }
+    // Modify response to include Google search link when needed
+    const stepByStepKeywords = ["how to", "step-by-step guide", "installation"];
+    for (let keyword of stepByStepKeywords) {
+      if (question.toLowerCase().includes(keyword)) {
+        const searchQuery = `Step by step guide for ${question}`;
+        const googleSearchURL = generateGoogleSearchURL(searchQuery);
+        assistantText += `\n\nFor the most up-to-date information, you can search Google:  
+        <a href="${googleSearchURL}" target="_blank" rel="noopener noreferrer">View Step-by-Step Guide on Google</a>`;
+        break;
       }
     }
 
