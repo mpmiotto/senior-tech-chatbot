@@ -80,7 +80,7 @@ app.post("/api/chat", async (req, res) => {
 
     // GPT-4 response
     const response = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4-turbo",
       messages: conversation,
     });
 
