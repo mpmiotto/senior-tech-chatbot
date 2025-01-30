@@ -64,11 +64,13 @@
 
       #header input {
         width: 100%;
-        padding: 14px 40px 14px 12px;
+        padding: 14px 50px 14px 12px; /* Increased right padding to avoid overlap */
         font-size: 20px;
         border: none;
         border-radius: 5px;
         outline: none;
+        white-space: nowrap; /* Prevents text from wrapping */
+        overflow-x: auto; /* Allows horizontal scrolling */
       }
 
       #header button {
@@ -80,9 +82,10 @@
       }
 
       #header button svg {
-        width: 24px;
-        height: 24px;
-        color: black;
+        width: 26px; /* Slightly larger */
+        height: 26px;
+        color: red; /* Change arrow to red */
+        font-weight: bold;
       }
 
       #chatArea {
@@ -110,6 +113,7 @@
         text-align: left;
         font-size: 20px;
       }
+
       .user strong {
         color: red;
         font-weight: bold;
@@ -147,7 +151,8 @@
 
         #header input {
           font-size: 22px;
-          padding: 14px;
+          padding: 14px 50px 14px 12px; /* Ensures text does not overlap arrow */
+          overflow-x: auto;
         }
 
         #header button {
@@ -183,11 +188,12 @@
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
-              stroke-width="2"
+              stroke-width="3" /* Increased stroke width for boldness */
               d="M5 10l7-7m0 0l7 7m-7-7v18"
             />
           </svg>
         </button>
+      </div>
       </div>
     </div>
 
