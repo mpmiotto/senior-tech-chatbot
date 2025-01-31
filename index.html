@@ -64,13 +64,13 @@
 
       #header input {
         width: 100%;
-        padding: 14px 50px 14px 12px; /* Increased right padding to avoid overlap */
+        padding: 14px 50px 14px 12px;
         font-size: 20px;
         border: none;
         border-radius: 5px;
         outline: none;
-        white-space: nowrap; /* Prevents text from wrapping */
-        overflow-x: auto; /* Allows horizontal scrolling */
+        white-space: nowrap;
+        overflow-x: auto;
       }
 
       #header button {
@@ -82,9 +82,9 @@
       }
 
       #header button svg {
-        width: 26px; /* Slightly larger */
+        width: 26px;
         height: 26px;
-        color: red; /* Change arrow to red */
+        color: red;
         font-weight: bold;
       }
 
@@ -135,6 +135,7 @@
         border-top: 5px solid #ccc;
         margin: 20px 0;
       }
+
       .forward-button {
         display: block;
         margin-top: 10px;
@@ -150,38 +151,6 @@
 
       .forward-button:hover {
         background-color: #0056b3;
-      }
-
-      @media (max-width: 600px) {
-        body {
-          font-size: 22px;
-        }
-
-        #header h1 {
-          font-size: 1.8rem;
-        }
-
-        .input-container {
-          width: 100%;
-        }
-
-        #header input {
-          font-size: 22px;
-          padding: 14px 50px 14px 12px; /* Ensures text does not overlap arrow */
-          overflow-x: auto;
-        }
-
-        #header button {
-          right: 5px;
-        }
-
-        .message {
-          font-size: 22px;
-        }
-
-        .assistant a {
-          font-size: 22px;
-        }
       }
     </style>
   </head>
@@ -201,7 +170,6 @@
             viewBox="0 0 24 24"
             stroke="currentColor"
           >
-            <!-- Increased stroke width for boldness -->
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -217,7 +185,7 @@
 
     <script>
       const chatArea = document.getElementById('chatArea');
-      let lastUserQuestion = ''; // Stores the most recent user-entered question
+      let lastUserQuestion = '';
 
       async function sendMessage(userInput = null) {
         const userMessageInput = document.getElementById('userMessage');
@@ -228,8 +196,7 @@
           return;
         }
 
-        lastUserQuestion = message; // ✅ Store the latest question
-
+        lastUserQuestion = message;
         addToChatArea('You', message);
 
         const thinkingIndicator = addToChatArea(
@@ -250,7 +217,9 @@
 
           const data = await response.json();
 
-          thinkingIndicator.remove();
+          if (thinkingIndicator) {
+            thinkingIndicator.remove(); // ✅ Ensure it exists before removing
+          }
 
           if (data.error) {
             addToChatArea('Error', data.error);
@@ -261,7 +230,9 @@
           addSeparatorLine();
           scrollToBottom();
         } catch (error) {
-          thinkingIndicator.remove();
+          if (thinkingIndicator) {
+            thinkingIndicator.remove();
+          }
           addToChatArea(
             'Error',
             'Could not connect to the server. Please try again.'
@@ -281,30 +252,25 @@
         if (role === 'You') {
           messageDiv.classList.add('user');
           messageDiv.innerHTML = `<strong>${role}:</strong> ${text}`;
-        } else if (role === 'Assistant' || role === 'Error') {
+        } else {
           messageDiv.classList.add('assistant');
-
           let processedText = marked.parse(text);
 
-          // 🔹 Ensure **only** external links open in a new tab (not chatbot links)
           processedText = processedText.replace(
-            /<a(?!.*data-question)/g,
-            '<a target="_blank" rel="noopener noreferrer" '
+            /<a((?!data-question)[^>]*)>/gi,
+            '<a$1 target="_blank" rel="noopener noreferrer">'
           );
 
           messageDiv.innerHTML = `<strong>Assistant's Response:</strong> ${processedText}`;
 
-          // 🛑 FIX: Ensure "Forward" button is **only added AFTER full response** (not during "Thinking...")
           if (!text.includes('Thinking, please give me a few seconds')) {
-            // 🔹 Create Forward Button
             const forwardButton = document.createElement('button');
             forwardButton.classList.add('forward-button');
             forwardButton.innerHTML = '📤 Forward this response to a friend';
 
-            // 🔹 Convert chatbot links into **full URLs** for email forwarding
             const emailSafeHtml = processedText.replace(
-              /<a href="#" data-question="([^"]+)">([^<]+)<\/a>/g,
-              `<a href="https://senior-tech-chatbot.com/api/chat?question=$1" target="_blank" rel="noopener noreferrer">$2</a>`
+              /<a href="#" data-question="(.*?)">(.*?)<\/a>/g,
+              `<a href="https://senior-tech-chatbot.onrender.com/api/chat?question=$1" target="_blank" rel="noopener noreferrer">$2</a>`
             );
 
             forwardButton.onclick = () => forwardResponse(emailSafeHtml);
@@ -313,51 +279,28 @@
         }
 
         chatArea.appendChild(messageDiv);
-
-        // 🛑 FIX: Ensure chatbot links stay **inside the app** (prevent new tabs)
-        if (role === 'Assistant') {
-          messageDiv.querySelectorAll('a[data-question]').forEach((link) => {
-            link.addEventListener('click', function (e) {
-              e.preventDefault();
-              const followUpQuestion = e.target.getAttribute('data-question');
-              if (followUpQuestion) {
-                sendMessage(followUpQuestion); // Keep inside chatbot
-              }
-            });
-          });
-        }
+        scrollToBottom(); // ✅ Ensure chat always scrolls to bottom
 
         return messageDiv;
       }
 
-      function forwardResponse() {
+      function forwardResponse(emailSafeHtml) {
         if (!lastUserQuestion) {
           alert('No recent question to forward.');
           return;
         }
 
-        const baseURL = 'https://senior-tech-chatbot.com/api/chat';
         const encodedQuery = encodeURIComponent(lastUserQuestion);
-        const shareableURL = `${baseURL}?question=${encodedQuery}`;
-
-        const clipboardText = `
-Check out this answer from Senior Tech Chatbot!  
-
-👉 Click here to view:  
-${shareableURL}
-  `;
+        const shareableURL = `https://senior-tech-chatbot.onrender.com/?question=${encodedQuery}`;
 
         navigator.clipboard
-          .writeText(clipboardText)
-          .then(() => {
-            alert(
-              'Link copied! You can now paste it into an email or message.'
-            );
-          })
-          .catch((err) => {
-            console.error('Failed to copy:', err);
-            alert('Failed to copy. Please try manually.');
-          });
+          .writeText(
+            `Check out this answer from Senior Tech Chatbot!\n\n👉 Click here to view:\n${shareableURL}`
+          )
+          .then(() =>
+            alert('Link copied! You can now paste it into an email or message.')
+          )
+          .catch((err) => console.error('Failed to copy:', err));
       }
 
       function addSeparatorLine() {
@@ -369,14 +312,13 @@ ${shareableURL}
       function scrollToBottom() {
         chatArea.scrollTo({ top: chatArea.scrollHeight, behavior: 'smooth' });
       }
-      // Function to check if there's a query in the URL and auto-run it
-      window.onload = function () {
-        const urlParams = new URLSearchParams(window.location.search);
-        const question = urlParams.get('question');
 
-        if (question) {
-          sendMessage(question);
-        }
+      window.onload = function () {
+        setTimeout(() => {
+          const urlParams = new URLSearchParams(window.location.search);
+          const question = urlParams.get('question');
+          if (question) sendMessage(question);
+        }, 500);
       };
     </script>
   </body>
