@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 // Define the system prompt as a constant
@@ -47,16 +47,16 @@ app.post('/api/chat', async (req, res) => {
     messages.push({ userId, role: 'user', content: message });
 
     // Build the conversation
-    const userMessages = messages.filter(m => m.userId === userId);
+    const userMessages = messages.filter((m) => m.userId === userId);
     const conversation = [
       { role: 'system', content: SYSTEM_PROMPT },
-      ...userMessages.map(m => ({ role: m.role, content: m.content }))
+      ...userMessages.map((m) => ({ role: m.role, content: m.content })),
     ];
 
     // GPT-4 response
     const response = await openai.chat.completions.create({
       model: 'gpt-4',
-      messages: conversation
+      messages: conversation,
     });
 
     const assistantText = response.choices[0].message.content;
@@ -79,19 +79,21 @@ app.get('/api/chat', async (req, res) => {
   try {
     const question = req.query.question; // Get question from URL
     if (!question) {
-      return res.status(400).json({ error: 'Missing query parameter: question' });
+      return res
+        .status(400)
+        .json({ error: 'Missing query parameter: question' });
     }
 
     // Build the conversation
     const conversation = [
       { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: question }
+      { role: 'user', content: question },
     ];
 
     // GPT-4 response
     const response = await openai.chat.completions.create({
       model: 'gpt-4',
-      messages: conversation
+      messages: conversation,
     });
 
     const assistantText = response.choices[0].message.content;

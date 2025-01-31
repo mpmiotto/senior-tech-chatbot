@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -135,6 +135,22 @@
         border-top: 5px solid #ccc;
         margin: 20px 0;
       }
+      .forward-button {
+        display: block;
+        margin-top: 10px;
+        padding: 8px 12px;
+        font-size: 18px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-align: center;
+      }
+
+      .forward-button:hover {
+        background-color: #0056b3;
+      }
 
       @media (max-width: 600px) {
         body {
@@ -185,46 +201,49 @@
             viewBox="0 0 24 24"
             stroke="currentColor"
           >
+            <!-- Increased stroke width for boldness -->
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
-              stroke-width="3" /* Increased stroke width for boldness */
+              stroke-width="3"
               d="M5 10l7-7m0 0l7 7m-7-7v18"
             />
           </svg>
         </button>
-      </div>
       </div>
     </div>
 
     <div id="chatArea"></div>
 
     <script>
-      const chatArea = document.getElementById("chatArea");
+      const chatArea = document.getElementById('chatArea');
+      let lastUserQuestion = ''; // Stores the most recent user-entered question
 
       async function sendMessage(userInput = null) {
-        const userMessageInput = document.getElementById("userMessage");
+        const userMessageInput = document.getElementById('userMessage');
         const message = userInput || userMessageInput.value.trim();
 
         if (!message) {
-          alert("Please enter a question.");
+          alert('Please enter a question.');
           return;
         }
 
-        addToChatArea("You", message);
+        lastUserQuestion = message; // ✅ Store the latest question
+
+        addToChatArea('You', message);
 
         const thinkingIndicator = addToChatArea(
-          "Assistant",
+          'Assistant',
           '<span class="thinking-text">Thinking, please give me a few seconds to think about this.</span>'
         );
         scrollToBottom();
 
         try {
           const response = await fetch(
-            "https://senior-tech-chatbot.onrender.com/api/chat",
+            'https://senior-tech-chatbot.onrender.com/api/chat',
             {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ message }),
             }
           );
@@ -234,9 +253,9 @@
           thinkingIndicator.remove();
 
           if (data.error) {
-            addToChatArea("Error", data.error);
+            addToChatArea('Error', data.error);
           } else {
-            addToChatArea("Assistant", data.assistant);
+            addToChatArea('Assistant', data.assistant);
           }
 
           addSeparatorLine();
@@ -244,47 +263,65 @@
         } catch (error) {
           thinkingIndicator.remove();
           addToChatArea(
-            "Error",
-            "Could not connect to the server. Please try again."
+            'Error',
+            'Could not connect to the server. Please try again.'
           );
-          console.error("Error:", error);
+          console.error('Error:', error);
         }
 
         if (!userInput) {
-          userMessageInput.value = "";
+          userMessageInput.value = '';
         }
       }
 
       function addToChatArea(role, text) {
-        const messageDiv = document.createElement("div");
-        messageDiv.classList.add("message");
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message');
 
-        if (role === "You") {
-          messageDiv.classList.add("user");
+        if (role === 'You') {
+          messageDiv.classList.add('user');
           messageDiv.innerHTML = `<strong>${role}:</strong> ${text}`;
-        } else {
-          messageDiv.classList.add("assistant");
+        } else if (role === 'Assistant' || role === 'Error') {
+          messageDiv.classList.add('assistant');
+
           let processedText = marked.parse(text);
 
-          // FIX: Ensure only **external** links open in a new tab
+          // 🔹 Ensure **only** external links open in a new tab (not chatbot links)
           processedText = processedText.replace(
             /<a(?!.*data-question)/g,
             '<a target="_blank" rel="noopener noreferrer" '
           );
 
           messageDiv.innerHTML = `<strong>Assistant's Response:</strong> ${processedText}`;
+
+          // 🛑 FIX: Ensure "Forward" button is **only added AFTER full response** (not during "Thinking...")
+          if (!text.includes('Thinking, please give me a few seconds')) {
+            // 🔹 Create Forward Button
+            const forwardButton = document.createElement('button');
+            forwardButton.classList.add('forward-button');
+            forwardButton.innerHTML = '📤 Forward this response to a friend';
+
+            // 🔹 Convert chatbot links into **full URLs** for email forwarding
+            const emailSafeHtml = processedText.replace(
+              /<a href="#" data-question="([^"]+)">([^<]+)<\/a>/g,
+              `<a href="https://senior-tech-chatbot.com/api/chat?question=$1" target="_blank" rel="noopener noreferrer">$2</a>`
+            );
+
+            forwardButton.onclick = () => forwardResponse(emailSafeHtml);
+            messageDiv.appendChild(forwardButton);
+          }
         }
 
         chatArea.appendChild(messageDiv);
 
-        // FIX: Attach click event to follow-up links
-        if (role === "Assistant") {
-          messageDiv.querySelectorAll("a[data-question]").forEach((link) => {
-            link.addEventListener("click", function (e) {
+        // 🛑 FIX: Ensure chatbot links stay **inside the app** (prevent new tabs)
+        if (role === 'Assistant') {
+          messageDiv.querySelectorAll('a[data-question]').forEach((link) => {
+            link.addEventListener('click', function (e) {
               e.preventDefault();
-              const followUpQuestion = e.target.getAttribute("data-question");
+              const followUpQuestion = e.target.getAttribute('data-question');
               if (followUpQuestion) {
-                sendMessage(followUpQuestion);
+                sendMessage(followUpQuestion); // Keep inside chatbot
               }
             });
           });
@@ -293,15 +330,54 @@
         return messageDiv;
       }
 
+      function forwardResponse() {
+        if (!lastUserQuestion) {
+          alert('No recent question to forward.');
+          return;
+        }
+
+        const baseURL = 'https://senior-tech-chatbot.com/api/chat';
+        const encodedQuery = encodeURIComponent(lastUserQuestion);
+        const shareableURL = `${baseURL}?question=${encodedQuery}`;
+
+        const clipboardText = `
+Check out this answer from Senior Tech Chatbot!  
+
+👉 Click here to view:  
+${shareableURL}
+  `;
+
+        navigator.clipboard
+          .writeText(clipboardText)
+          .then(() => {
+            alert(
+              'Link copied! You can now paste it into an email or message.'
+            );
+          })
+          .catch((err) => {
+            console.error('Failed to copy:', err);
+            alert('Failed to copy. Please try manually.');
+          });
+      }
+
       function addSeparatorLine() {
-        const line = document.createElement("hr");
-        line.classList.add("separator");
+        const line = document.createElement('hr');
+        line.classList.add('separator');
         chatArea.appendChild(line);
       }
 
       function scrollToBottom() {
-        chatArea.scrollTo({ top: chatArea.scrollHeight, behavior: "smooth" });
+        chatArea.scrollTo({ top: chatArea.scrollHeight, behavior: 'smooth' });
       }
+      // Function to check if there's a query in the URL and auto-run it
+      window.onload = function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const question = urlParams.get('question');
+
+        if (question) {
+          sendMessage(question);
+        }
+      };
     </script>
   </body>
 </html>

@@ -1,16 +1,16 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const { OpenAI } = require("openai");
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const { OpenAI } = require('openai');
 
 // Initialize Express and OpenAI
 const app = express();
 app.use(cors());
 app.use(express.json());
-const path = require("path");
+const path = require('path');
 
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 const openai = new OpenAI({
@@ -51,15 +51,15 @@ const messages = {};
 const MAX_MESSAGES = 10; // Limit history to last 10 messages per user
 
 // POST endpoint (for chatbot UI)
-app.post("/api/chat", async (req, res) => {
+app.post('/api/chat', async (req, res) => {
   try {
     const { message } = req.body;
 
     if (!message) {
-      return res.status(400).json({ error: "Missing message" });
+      return res.status(400).json({ error: 'Missing message' });
     }
 
-    const userId = "defaultUser"; // Remove user-specific storage for now
+    const userId = 'defaultUser'; // Remove user-specific storage for now
 
     // Ensure user message history exists
     if (!messages[userId]) {
@@ -67,27 +67,27 @@ app.post("/api/chat", async (req, res) => {
     }
 
     // Add user message and enforce history limit
-    messages[userId].push({ role: "user", content: message });
+    messages[userId].push({ role: 'user', content: message });
     if (messages[userId].length > MAX_MESSAGES) {
       messages[userId] = messages[userId].slice(-MAX_MESSAGES);
     }
 
     // Build conversation history with system prompt
     const conversation = [
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: 'system', content: SYSTEM_PROMPT },
       ...messages[userId],
     ];
 
     // GPT-4 response
     const response = await openai.chat.completions.create({
-      model: "gpt-4-turbo",
+      model: 'gpt-4-turbo',
       messages: conversation,
     });
 
     let assistantText = response.choices[0].message.content;
 
     // Modify response: Detect when a step-by-step guide is needed
-    const stepByStepKeywords = ["how to", "step-by-step guide", "installation"];
+    const stepByStepKeywords = ['how to', 'step-by-step guide', 'installation'];
     for (let keyword of stepByStepKeywords) {
       if (message.toLowerCase().includes(keyword)) {
         const searchQuery = `Step by step guide for ${message}`;
@@ -99,44 +99,44 @@ app.post("/api/chat", async (req, res) => {
     }
 
     // Add assistant response to history
-    messages[userId].push({ role: "assistant", content: assistantText });
+    messages[userId].push({ role: 'assistant', content: assistantText });
     if (messages[userId].length > MAX_MESSAGES) {
       messages[userId] = messages[userId].slice(-MAX_MESSAGES);
     }
 
     res.json({ assistant: assistantText });
   } catch (error) {
-    console.error("Error in POST /api/chat:", error);
-    res.status(500).json({ error: "Server error" });
+    console.error('Error in POST /api/chat:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
 // GET endpoint (for hyperlinks in new tabs)
-app.get("/api/chat", async (req, res) => {
+app.get('/api/chat', async (req, res) => {
   try {
     const question = req.query.question;
     if (!question) {
       return res
         .status(400)
-        .json({ error: "Missing query parameter: question" });
+        .json({ error: 'Missing query parameter: question' });
     }
 
     // Build conversation with system prompt and single user query
     const conversation = [
-      { role: "system", content: SYSTEM_PROMPT },
-      { role: "user", content: question },
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: question },
     ];
 
     // GPT-4 response
     const response = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: 'gpt-4',
       messages: conversation,
     });
 
     let assistantText = response.choices[0].message.content;
 
     // Modify response to include Google search link when needed
-    const stepByStepKeywords = ["how to", "step-by-step guide", "installation"];
+    const stepByStepKeywords = ['how to', 'step-by-step guide', 'installation'];
     for (let keyword of stepByStepKeywords) {
       if (question.toLowerCase().includes(keyword)) {
         const searchQuery = `Step by step guide for ${question}`;
@@ -149,8 +149,8 @@ app.get("/api/chat", async (req, res) => {
 
     res.send(assistantText);
   } catch (error) {
-    console.error("Error in GET /api/chat:", error);
-    res.status(500).json({ error: "Server error" });
+    console.error('Error in GET /api/chat:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
