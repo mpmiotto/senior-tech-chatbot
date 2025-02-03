@@ -31,7 +31,7 @@ async function logUserActivity(message) {
   // const LOG_SERVER_URL = 'http://localhost:4000/api/log';
 
   // ✅ Use this for Render deployment
-  const LOG_SERVER_URL = 'https://your-render-app-name.onrender.com/api/log';
+  const LOG_SERVER_URL = 'https://senior-tech-chatbot.onrender.com';
 
   try {
     await fetch('http://localhost:4000/api/log', {
