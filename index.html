@@ -202,6 +202,8 @@
       let lastUserQuestion = '';
 
       async function sendMessage(userInput = null) {
+        console.log('sendMessage triggered'); // 🔍 Add this line
+
         const userMessageInput = document.getElementById('userMessage');
         const message = userInput || userMessageInput.value.trim();
 
@@ -209,7 +211,8 @@
           alert('Please enter a question.');
           return;
         }
-
+        // ✅ Add this line to log user activity
+        await logUserActivity(message);
         lastUserQuestion = message;
         addToChatArea('You', message);
 
@@ -220,14 +223,11 @@
         scrollToBottom();
 
         try {
-          const response = await fetch(
-            'https://senior-tech-chatbot.onrender.com/api/chat',
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ message }),
-            }
-          );
+          const response = await fetch('http://localhost:3001/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message }),
+          });
 
           const data = await response.json();
 
@@ -354,5 +354,6 @@
         }, 500);
       };
     </script>
+    <script src="./logger.js"></script>
   </body>
 </html>
