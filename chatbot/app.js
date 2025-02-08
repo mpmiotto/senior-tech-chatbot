@@ -25,8 +25,13 @@ async function logUserActivity(message) {
     timestamp: new Date().toISOString(),
   };
 
+  const logServerUrl =
+    process.env.NODE_ENV === 'production'
+      ? 'https://your-log-server-url.onrender.com/api/log' // Replace with your actual Render URL
+      : 'http://localhost:4000/api/log';
+
   try {
-    const response = await axios.post('http://localhost:4000/api/log', logData);
+    const response = await axios.post(logServerUrl, logData);
     console.log('Logged activity to logServer:', response.data);
   } catch (error) {
     console.error('Error logging activity:', error.message);
