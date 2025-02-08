@@ -1,0 +1,148 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  font-size: 20px;
+}
+
+#header {
+  background-color: black;
+  color: white;
+  padding: 10px;
+  text-align: center;
+}
+
+#header h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+#chatArea {
+  flex: 1;
+  overflow-y: scroll;
+  padding: 10px;
+  background-color: #f9f9f9;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 100px;
+}
+
+.input-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  background-color: #f0f0f0;
+  padding: 10px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 25%;
+  max-width: 400px;
+}
+
+#userMessage {
+  width: 70%;
+  padding: 15px;
+  font-size: 24px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+  margin-right: 10px;
+}
+
+button {
+  background-color: transparent;
+  border: none;
+  padding: 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button svg {
+  width: 32px;
+  height: 32px;
+  color: red;
+}
+
+button:hover svg {
+  color: darkred;
+}
+
+.message {
+  margin: 10px 0;
+  font-size: 20px;
+}
+
+.user {
+  text-align: left;
+  font-weight: bold;
+  font-size: 22px;
+  color: red;
+}
+
+.assistant {
+  text-align: left;
+  font-size: 20px;
+}
+
+.assistant strong {
+  color: green;
+  font-weight: bold;
+}
+
+.assistant a {
+  display: block;
+  margin-top: 10px;
+  font-size: 20px;
+}
+
+.separator {
+  border: none;
+  border-top: 5px solid #ccc;
+  margin: 20px 0;
+}
+
+/* Blinking "Thinking" Text Animation */
+@keyframes flashing {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.thinking-text {
+  font-style: italic;
+  animation: flashing 1.2s infinite;
+  font-size: 18px;
+}
+
+@media (max-width: 768px) {
+  .input-wrapper {
+    width: 100%;
+    padding: 0 10px;
+    justify-content: space-between;
+  }
+
+  #userMessage {
+    width: 80%;
+  }
+}

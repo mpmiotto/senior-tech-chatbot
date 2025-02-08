@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <title>Senior Tech Chatbot (Prototype)</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Header stays at the top -->
+    <div id="header">
+      <h1>Senior Tech Chatbot</h1>
+    </div>
+
+    <div id="chatArea"></div>
+
+    <div class="input-container">
+      <input
+        type="text"
+        id="userMessage"
+        placeholder="Type your question here..."
+      />
+      <button onclick="sendMessage()">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="3"
+            d="M5 10l7-7m0 0l7 7m-7-7v18"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <script>
+      const chatArea = document.getElementById('chatArea');
+      let lastUserQuestion = '';
+
+      async function sendMessage(userInput = null) {
+        console.log('sendMessage triggered'); // 🔍 Add this line
+
+        const userMessageInput = document.getElementById('userMessage');
+        const message = userInput || userMessageInput.value.trim();
+
+        if (!message) {
+          alert('Please enter a question.');
+          return;
+        }
+        // ✅ Add this line to log user activity
+        await logUserActivity(message);
+        lastUserQuestion = message;
+        addToChatArea('You', message);
+
+        const thinkingIndicator = addToChatArea(
+          'Assistant',
+          '<span class="thinking-text">Thinking, please give me a few seconds to think about this.</span>'
+        );
+        scrollToBottom();
+
+        try {
+          const response = await fetch('http://localhost:3001/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message }),
+          });
+
+          const data = await response.json();
+
+          if (thinkingIndicator) {
+            thinkingIndicator.remove();
+          }
+
+          if (data.error) {
+            addToChatArea('Error', data.error);
+          } else {
+            addToChatArea('Assistant', data.assistant);
+          }
+
+          addSeparatorLine();
+          scrollToBottom();
+        } catch (error) {
+          if (thinkingIndicator) {
+            thinkingIndicator.remove();
+          }
+          addToChatArea(
+            'Error',
+            'Could not connect to the server. Please try again.'
+          );
+          console.error('Error:', error);
+        }
+
+        if (!userInput) {
+          userMessageInput.value = '';
+        }
+      }
+
+      function addToChatArea(role, text) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message');
+
+        if (role === 'You') {
+          messageDiv.classList.add('user');
+          messageDiv.innerHTML = `<strong>${role}:</strong> ${text}`;
+        } else {
+          messageDiv.classList.add('assistant');
+          let processedText = marked.parse(text);
+
+          processedText = processedText
+            .replace(
+              /<a([^>]*data-question[^>]*)>/gi, // Internal chatbot links
+              '<a$1>'
+            )
+            .replace(
+              /<a((?!data-question)[^>]*)>/gi, // External links (open new tab)
+              '<a$1 target="_blank" rel="noopener noreferrer">'
+            );
+
+          messageDiv.innerHTML = `<strong>Assistant's Response:</strong> ${processedText}`;
+
+          // ✅ Add Event Listeners for chatbot-generated links
+          messageDiv.querySelectorAll('a[data-question]').forEach((link) => {
+            link.addEventListener('click', function (e) {
+              e.preventDefault();
+              const followUpQuestion = e.target.getAttribute('data-question');
+              if (followUpQuestion) {
+                sendMessage(followUpQuestion);
+              }
+            });
+          });
+
+          // ✅ Fix: Ensure share button logic is correct
+          if (!text.includes('Thinking, please give me a few seconds')) {
+            const forwardLink = document.createElement('a');
+            forwardLink.href = '#';
+            forwardLink.classList.add('forward-link');
+            forwardLink.innerHTML =
+              '📤 <span style="font-size: 14px; color: gray;">Share this</span>';
+
+            forwardLink.addEventListener('click', function (event) {
+              event.preventDefault();
+
+              const encodedQuery = encodeURIComponent(lastUserQuestion);
+              const shareableURL = `https://senior-tech-chatbot.onrender.com/?question=${encodedQuery}`;
+
+              const shareText = `Check out this answer from Senior Tech Chatbot!\n\n👉 Click here to view:\n${shareableURL}`;
+
+              if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+                // Mobile: Open SMS app
+                window.location.href = `sms:?body=${encodeURIComponent(shareText)}`;
+              } else {
+                // Desktop: Copy to clipboard
+                navigator.clipboard
+                  .writeText(shareText)
+                  .then(() => {
+                    alert(
+                      'Link copied! You can now paste it into an email or message.'
+                    );
+                  })
+                  .catch((err) => {
+                    console.error('Failed to copy:', err);
+                    alert('Failed to copy. Please try manually.');
+                  });
+              }
+            });
+
+            messageDiv.appendChild(forwardLink);
+          }
+        }
+
+        chatArea.appendChild(messageDiv);
+        scrollToBottom();
+      }
+
+      function addSeparatorLine() {
+        const line = document.createElement('hr');
+        line.classList.add('separator');
+        chatArea.appendChild(line);
+      }
+
+      function scrollToBottom() {
+        chatArea.scrollTo({ top: chatArea.scrollHeight, behavior: 'smooth' });
+      }
+
+      window.onload = function () {
+        setTimeout(() => {
+          const urlParams = new URLSearchParams(window.location.search);
+          const question = urlParams.get('question');
+          if (question) sendMessage(question);
+        }, 500);
+      };
+    </script>
+    <script src="./logger.js"></script>
+  </body>
+</html>
