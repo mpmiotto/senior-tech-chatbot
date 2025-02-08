@@ -46,7 +46,7 @@
       let lastUserQuestion = '';
 
       async function sendMessage(userInput = null) {
-        console.log('sendMessage triggered'); // 🔍 Add this line
+        console.log('sendMessage triggered');
 
         const userMessageInput = document.getElementById('userMessage');
         const message = userInput || userMessageInput.value.trim();
@@ -55,7 +55,7 @@
           alert('Please enter a question.');
           return;
         }
-        // ✅ Add this line to log user activity
+
         await logUserActivity(message);
         lastUserQuestion = message;
         addToChatArea('You', message);
@@ -66,12 +66,13 @@
         );
         scrollToBottom();
 
+        // ✅ Add the missing try block here
         try {
-          const response = await fetch('/api/chat', { ... }); {
+          const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message }),
-          };
+          });
 
           const data = await response.json();
 
@@ -88,6 +89,7 @@
           addSeparatorLine();
           scrollToBottom();
         } catch (error) {
+          // ✅ This catch was missing the corresponding try
           if (thinkingIndicator) {
             thinkingIndicator.remove();
           }
