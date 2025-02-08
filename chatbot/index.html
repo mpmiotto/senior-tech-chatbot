@@ -40,7 +40,7 @@
         </svg>
       </button>
     </div>
-
+    <script src="./logger.js"></script>
     <script>
       const chatArea = document.getElementById('chatArea');
       let lastUserQuestion = '';
@@ -71,7 +71,7 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message }),
-          });
+          };
 
           const data = await response.json();
 
@@ -198,6 +198,5 @@
         }, 500);
       };
     </script>
-    <script src="./logger.js"></script>
   </body>
 </html>
