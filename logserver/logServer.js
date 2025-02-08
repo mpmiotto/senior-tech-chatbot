@@ -1,68 +1,60 @@
 // logServer.js with SQLite
 
 const express = require('express');
-const bodyParser = require('body-parser');
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const bodyParser = require('body-parser');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use(cors());
+// ✅ Configure CORS to allow requests from your chatbot frontend
+const allowedOrigins = ['https://senior-tech-chatbot.onrender.com'];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+  })
+);
+
 app.use(bodyParser.json());
 
-// Initialize SQLite database
-const dbPath = path.join(__dirname, 'logs.db');
-const db = new sqlite3.Database(dbPath, (err) => {
+// Database setup
+const db = new sqlite3.Database('./logs.db', (err) => {
   if (err) {
-    console.error('Error connecting to SQLite database:', err);
+    console.error('Error opening database:', err);
   } else {
     console.log('Connected to SQLite database.');
   }
 });
 
-// Create logs table if it doesn't exist
-db.run(`
-  CREATE TABLE IF NOT EXISTS user_logs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    userId TEXT NOT NULL,
-    message TEXT NOT NULL,
-    timestamp TEXT NOT NULL
-  )
-`);
-
-// API endpoint to receive logs
+// API route to log user activity
 app.post('/api/log', (req, res) => {
-  console.log('Received log request:', req.body); // 🔍 Add this line
   const { userId, message, timestamp } = req.body;
 
-  if (!userId || !message) {
-    return res.status(400).json({ error: 'Missing userId or message' });
+  if (!userId || !message || !timestamp) {
+    return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  const logEntry = {
-    userId,
-    message,
-    timestamp: timestamp || new Date().toISOString(),
-  };
+  const query = `INSERT INTO logs (userId, message, timestamp) VALUES (?, ?, ?)`;
 
-  // Insert log entry into SQLite database
-  db.run(
-    `INSERT INTO user_logs (userId, message, timestamp) VALUES (?, ?, ?)`,
-    [logEntry.userId, logEntry.message, logEntry.timestamp],
-    (err) => {
-      if (err) {
-        console.error('Failed to insert log:', err);
-        return res.status(500).json({ error: 'Database error' });
-      }
-      res
-        .status(200)
-        .json({ success: true, message: 'Log saved successfully' });
+  db.run(query, [userId, message, timestamp], function (err) {
+    if (err) {
+      console.error('Error inserting into database:', err.message);
+      res.status(500).json({ error: 'Failed to log activity' });
+    } else {
+      res.status(201).json({ message: 'Activity logged successfully' });
     }
-  );
+  });
 });
 
+// Start the server
 app.listen(PORT, () => {
-  console.log(`Logging server running on port ${PORT}`);
+  console.log(`Log server running on port ${PORT}`);
 });
