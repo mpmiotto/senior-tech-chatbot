@@ -1,5 +1,3 @@
-// logServer.js with SQLite
-
 const express = require('express');
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
@@ -9,17 +7,11 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 // ✅ Configure CORS to allow requests from your chatbot frontend
-const allowedOrigins = ['https://senior-tech-chatbot.onrender.com'];
-
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: 'https://senior-tech-chatbot.onrender.com', // Replace with your actual chatbot URL
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type'],
   })
 );
 
