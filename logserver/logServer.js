@@ -22,7 +22,7 @@ app.use(
       }
     },
     methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
@@ -52,6 +52,8 @@ const db = new sqlite3.Database('./logs.db', (err) => {
     );
   }
 });
+
+app.options('/api/log', cors()); // Handle preflight requests for /api/log
 
 // API route to log user activity
 app.post('/api/log', (req, res) => {
