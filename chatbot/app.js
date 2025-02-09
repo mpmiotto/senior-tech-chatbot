@@ -4,8 +4,9 @@ const cors = require('cors');
 const { OpenAI } = require('openai');
 const axios = require('axios');
 const path = require('path');
-
 const app = express();
+const { logUserActivity } = require('./logger');
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
@@ -17,26 +18,6 @@ app.get('/', (req, res) => {
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-
-async function logUserActivity(message) {
-  const logData = {
-    userId: 'backend-logger',
-    message,
-    timestamp: new Date().toISOString(),
-  };
-
-  const logServerUrl =
-    process.env.NODE_ENV === 'production'
-      ? 'https://your-log-server-url.onrender.com/api/log' // Replace with your actual Render URL
-      : 'http://localhost:4000/api/log';
-
-  try {
-    const response = await axios.post(logServerUrl, logData);
-    console.log('Logged activity to logServer:', response.data);
-  } catch (error) {
-    console.error('Error logging activity:', error.message);
-  }
-}
 
 const SYSTEM_PROMPT = `
 You are a friendly, patient AI assistant designed to help non-technical senior citizens with technology-related questions.
