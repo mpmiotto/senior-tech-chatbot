@@ -9,7 +9,8 @@ const PORT = process.env.PORT || 4000;
 // ✅ Configure CORS to allow requests from your chatbot frontend
 app.use(
   cors({
-    origin: 'https://senior-tech-chatbot.onrender.com', // Replace with your actual chatbot URL
+    origin:
+      process.env.CORS_ORIGIN || 'https://senior-tech-chatbot.onrender.com', // Use environment variable if available
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type'],
   })
@@ -23,6 +24,22 @@ const db = new sqlite3.Database('./logs.db', (err) => {
     console.error('Error opening database:', err);
   } else {
     console.log('Connected to SQLite database.');
+    // Create logs table if it doesn't exist
+    db.run(
+      `CREATE TABLE IF NOT EXISTS logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        userId TEXT NOT NULL,
+        message TEXT NOT NULL,
+        timestamp TEXT NOT NULL
+      )`,
+      (err) => {
+        if (err) {
+          console.error('Error creating logs table:', err.message);
+        } else {
+          console.log('Logs table is ready.');
+        }
+      }
+    );
   }
 });
 
@@ -38,8 +55,10 @@ app.post('/api/log', (req, res) => {
 
   db.run(query, [userId, message, timestamp], function (err) {
     if (err) {
-      console.error('Error inserting into database:', err.message);
-      res.status(500).json({ error: 'Failed to log activity' });
+      console.error('Error inserting into database:', err.message); // Log detailed error message
+      res
+        .status(500)
+        .json({ error: 'Failed to log activity', details: err.message }); // Include error details in the response
     } else {
       res.status(201).json({ message: 'Activity logged successfully' });
     }
