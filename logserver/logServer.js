@@ -6,11 +6,21 @@ const bodyParser = require('body-parser');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// ✅ Configure CORS to allow requests from your chatbot frontend
+// ✅ Configure CORS to allow requests from multiple origins
+const allowedOrigins = [
+  'http://localhost:3000', // Local development
+  'https://senior-tech-chatbot.onrender.com', // Deployed frontend
+];
+
 app.use(
   cors({
-    origin:
-      process.env.CORS_ORIGIN || 'https://senior-tech-chatbot.onrender.com', // Use environment variable if available
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type'],
   })
